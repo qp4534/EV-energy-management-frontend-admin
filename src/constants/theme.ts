@@ -32,7 +32,7 @@ export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
  * so they read from `Brand` directly instead of the light/dark `Colors` above.
  */
 export const Brand = {
-  background: '#F5F1E4',
+  background: '#F9F9F6',
   card: '#FFFFFF',
   border: '#E2E6D8',
   primary: '#C0E2AF',
@@ -45,6 +45,8 @@ export const Brand = {
   warningText: '#C97A2E',
   successBg: '#DCEFC7',
   successText: '#4C7A3A',
+  resultCheckBg: '#E6EDB7',
+  resultInfoBg: '#F0F4D4',
 } as const;
 
 export const Fonts = Platform.select({

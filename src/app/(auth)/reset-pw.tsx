@@ -26,12 +26,17 @@ export default function ResetPasswordScreen() {
     submit,
     done,
     goToLogin,
-    goToFindId,
   } = useResetPassword();
 
   return (
     <View style={styles.container}>
-      <Header title="비밀번호 재설정" showBack />
+      <Header
+        title="비밀번호 재설정"
+        showBack
+        align="left"
+        titleColor={Brand.primaryDark}
+        backgroundColor={Brand.background}
+      />
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {done ? (
@@ -39,8 +44,6 @@ export default function ResetPasswordScreen() {
             message={'비밀번호 변경이 완료되었습니다.\n이제 로그인 하실 수 있습니다.'}
             primaryLabel="로그인하기"
             onPrimaryPress={goToLogin}
-            secondaryLabel="아이디 찾기"
-            onSecondaryPress={goToFindId}
           />
         ) : (
           <View style={styles.card}>
@@ -86,10 +89,6 @@ export default function ResetPasswordScreen() {
               disabled={!canSubmit || submitting}>
               <Text style={styles.submitButtonText}>비밀번호 변경</Text>
             </Pressable>
-
-            <Pressable style={styles.linkRow} onPress={goToFindId}>
-              <Text style={styles.linkText}>아이디 찾기</Text>
-            </Pressable>
           </View>
         )}
       </ScrollView>
@@ -114,14 +113,14 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    color: Brand.textMuted,
+    color: Brand.primaryDark,
   },
   field: {
     gap: 6,
   },
   fieldLabel: {
     fontSize: 13,
-    color: Brand.textMuted,
+    color: Brand.label,
   },
   submitButton: {
     borderRadius: 999,
@@ -137,13 +136,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     color: Brand.primaryDark,
-  },
-  linkRow: {
-    alignSelf: 'flex-end',
-  },
-  linkText: {
-    fontSize: 13,
-    color: Brand.textMuted,
-    textDecorationLine: 'underline',
   },
 });

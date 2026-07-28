@@ -29,7 +29,13 @@ export default function FindIdScreen() {
 
   return (
     <View style={styles.container}>
-      <Header title="아이디 찾기" showBack />
+      <Header
+        title="아이디 찾기"
+        showBack
+        align="left"
+        titleColor={Brand.primaryDark}
+        backgroundColor={Brand.background}
+      />
 
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {result ? (
@@ -71,11 +77,13 @@ export default function FindIdScreen() {
               disabled={!canSubmit || submitting}>
               <Text style={styles.submitButtonText}>아이디 찾기</Text>
             </Pressable>
-
-            <Pressable style={styles.linkRow} onPress={goToResetPassword}>
-              <Text style={styles.linkText}>비밀번호 재설정하기</Text>
-            </Pressable>
           </View>
+        )}
+
+        {!result && (
+          <Pressable style={styles.linkRow} onPress={goToResetPassword}>
+            <Text style={styles.linkText}>비밀번호 재설정하기</Text>
+          </Pressable>
         )}
       </ScrollView>
     </View>
@@ -93,20 +101,22 @@ const styles = StyleSheet.create({
   },
   card: {
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Brand.border,
     backgroundColor: Brand.card,
     padding: 24,
     gap: 14,
   },
   description: {
     fontSize: 14,
-    color: Brand.textMuted,
+    color: Brand.primaryDark,
   },
   field: {
     gap: 6,
   },
   fieldLabel: {
     fontSize: 13,
-    color: Brand.textMuted,
+    color: Brand.label,
   },
   submitButton: {
     borderRadius: 999,
@@ -125,15 +135,17 @@ const styles = StyleSheet.create({
   },
   linkRow: {
     alignSelf: 'flex-end',
+    marginTop: 12,
   },
   linkText: {
     fontSize: 13,
-    color: Brand.textMuted,
+    fontWeight: '700',
+    color: Brand.primaryDark,
     textDecorationLine: 'underline',
   },
   infoDate: {
     fontSize: 13,
-    color: Brand.textMuted,
+    color: Brand.label,
   },
   infoId: {
     fontSize: 17,
