@@ -15,7 +15,13 @@ export default function VehicleScreen() {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <Header title={isRegistered ? '차량 관리' : '차량 등록'} />
+        <Header
+          title={isRegistered ? '차량 관리' : '차량 등록'}
+          showBack
+          align="left"
+          titleColor={Brand.primaryDark}
+          backgroundColor={Brand.background}
+        />
         <View style={styles.content}>
           {isRegistered && vehicle ? (
             <VehicleManagePanel
