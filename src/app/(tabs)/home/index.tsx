@@ -72,38 +72,43 @@ export default function HomeScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: '#F4F6F3' }}>
       <StatusBar barStyle="light-content" />
-      
-      {/* 🟢 상단 딥그린 헤더 바 */}
+      {/* 🟢 상단 딥그린 헤더 바 (마이페이지와 높이/여백 통일) */}
       <View 
         style={{ 
           backgroundColor: '#113B29', 
           paddingTop: 55, 
-          paddingBottom: 25, 
-          paddingHorizontal: 24,
+          paddingBottom: 25, // 💡 마이페이지와 동일하게 유지
+          paddingHorizontal: 24, // 💡 마이페이지와 동일하게 24로 통일
           borderBottomLeftRadius: 24,
           borderBottomRightRadius: 24,
         }}
       >
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* 상단 라인: 타이틀과 알림 아이콘을 한 줄에 배치하여 높이를 줄임 */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={{ color: '#3CD070', fontSize: 18, fontWeight: 'bold', marginRight: 4 }}>⚡</Text>
-            <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: 'bold', letterSpacing: 0.5 }}>
+            <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: 'bold', letterSpacing: 0.5, opacity: 0.9 }}>
               MijungE
             </Text>
           </View>
           <TouchableOpacity onPress={() => router.push('/notification/list')}>
-            <Feather name="bell" size={22} color="white" />
+            <Feather name="bell" size={22} color="white" style={{ opacity: 0.9 }} />
           </TouchableOpacity>
         </View>
-        <Text style={{ color: '#ffffff', fontSize: 24, fontWeight: 'bold', marginTop: 16 }}>
-          안녕하세요, {user.name}*님
+        
+        {/* 메인 타이틀: marginTop을 제거하여 마이페이지처럼 윗줄과 바짝 붙임 */}
+        <Text style={{ color: '#ffffff', fontSize: 25, fontWeight: 'bold' }}>
+          안녕하세요, {user.name}님
         </Text>
       </View>
 
+      {/* 📜 하단 스크롤뷰 여백도 마이페이지(paddingHorizontal: 24)와 맞춰주면 디자인 밸런스가 더 좋습니다 */}
       <ScrollView 
-        contentContainerStyle={{ paddingBottom: 40, paddingHorizontal: 16, paddingTop: 16 }} 
+        style={{ flex: 1, paddingHorizontal: 24 }} 
+        contentContainerStyle={{ paddingBottom: 120, paddingTop: 16 }} 
         showsVerticalScrollIndicator={false}
       >
+      
         {/* ================= 🚗 [CASE 1] 차량 미등록시 메인 화면 ================= */}
         {!isVehicleRegistered ? (
           <View>

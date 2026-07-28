@@ -1,52 +1,3 @@
-// import { Pressable, StyleSheet } from 'react-native';
-// import { SafeAreaView } from 'react-native-safe-area-context';
-
-// import { ThemedText } from '@/components/themed-text';
-// import { ThemedView } from '@/components/themed-view';
-// import { Spacing } from '@/constants/theme';
-// import { useAuth } from '@/hooks/use-auth';
-
-// export default function MypageIndexScreen() {
-//   const { user, logout } = useAuth();
-
-//   return (
-//     <ThemedView style={styles.container}>
-//       <SafeAreaView style={styles.safeArea}>
-//         <ThemedText type="title">마이페이지</ThemedText>
-//         {user && (
-//           <ThemedText type="small" themeColor="textSecondary">
-//             {user.name} · {user.email}
-//           </ThemedText>
-//         )}
-
-//         <Pressable onPress={logout}>
-//           <ThemedView type="backgroundElement" style={styles.button}>
-//             <ThemedText type="link">로그아웃</ThemedText>
-//           </ThemedView>
-//         </Pressable>
-//       </SafeAreaView>
-//     </ThemedView>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//   },
-//   safeArea: {
-//     flex: 1,
-//     paddingHorizontal: Spacing.four,
-//     paddingTop: Spacing.four,
-//     gap: Spacing.three,
-//   },
-//   button: {
-//     alignSelf: 'flex-start',
-//     borderRadius: Spacing.five,
-//     paddingHorizontal: Spacing.four,
-//     paddingVertical: Spacing.two,
-//   },
-// });
-
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -73,9 +24,12 @@ export default function MyPageIndexScreen() {
           borderBottomRightRadius: 24,
         }}
       >
-        <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: 'bold', letterSpacing: 1, opacity: 0.9, marginBottom: 4 }}>
-          MijungE
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+          <Text style={{ color: '#3CD070', fontSize: 18, fontWeight: 'bold', marginRight: 4 }}>⚡</Text>
+          <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: 'bold', letterSpacing: 0.5, opacity: 0.9 }}>
+            MijungE
+          </Text>
+        </View>
         <Text style={{ color: '#ffffff', fontSize: 25, fontWeight: 'bold' }}>
           마이페이지
         </Text>
@@ -83,7 +37,7 @@ export default function MyPageIndexScreen() {
 
       <ScrollView 
         style={{ flex: 1, paddingHorizontal: 24 }} 
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: 120, paddingTop: 16 }}
         showsVerticalScrollIndicator={false}
       >
         {/* 🟡 유저 프로필 영역 (헤더 밖 배경 위에 배치 - 시안 완벽 반영) */}

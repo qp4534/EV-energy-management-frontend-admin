@@ -66,23 +66,37 @@ export default function MapScreen() {
         style={{ 
           backgroundColor: '#113B29', 
           paddingTop: 55, 
-          paddingBottom: 20, 
+          paddingBottom: 25, 
           paddingHorizontal: 24,
           borderBottomLeftRadius: 24,
           borderBottomRightRadius: 24,
           zIndex: 10,
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          {/* 뒤로가기 버튼 */}
-          <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 12 }}>
-            <Ionicons name="chevron-back" size={24} color="white" />
-          </TouchableOpacity>
-          <Text style={{ color: '#ffffff', fontSize: 20, fontWeight: 'bold' }}>
-            충전소 위치 찾기
-          </Text>
-        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+        <Text style={{ color: '#3CD070', fontSize: 18, fontWeight: 'bold', marginRight: 4 }}>⚡</Text>
+        <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: 'bold', letterSpacing: 0.5, opacity: 0.9 }}>
+          MijungE
+        </Text>
       </View>
+
+      {/* 2층: 뒤로가기 버튼 + 메인 타이틀 (가로로 묶기) */}
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <TouchableOpacity 
+          onPress={() => router.back()} 
+          style={{ 
+            marginRight: 6,   // 타이틀 텍스트와의 간격
+            marginLeft: -6,   // 화살표 아이콘 왼쪽 여백을 깎아서 1층 로고와 수직 라인을 맞춥니다
+          }}
+        >
+          <Ionicons name="chevron-back" size={26} color="white" />
+        </TouchableOpacity>
+        
+        <Text style={{ color: '#ffffff', fontSize: 25, fontWeight: 'bold', letterSpacing: -0.5 }}>
+          충전소 위치 찾기
+        </Text>
+      </View>
+    </View>
 
       {/* 🟢 2. 지도 및 검색 영역 Container */}
       <View style={{ flex: 1, position: 'relative' }}>
