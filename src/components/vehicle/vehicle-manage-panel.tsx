@@ -31,7 +31,7 @@ export function VehicleManagePanel({
             <Text style={styles.metricLabel}>배터리 상태</Text>
             {status && <StatusBadge status={status} />}
           </View>
-          <View style={[styles.metricColumn, styles.metricColumnRight]}>
+          <View style={styles.metricColumn}>
             <Text style={styles.metricLabel}>예상 배터리 잔존 수명</Text>
             <Text style={styles.metricValue}>{rul !== null ? formatRul(rul) : '-'}</Text>
           </View>
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   vehicleName: {
     fontSize: 18,
     fontWeight: '700',
-    color: Brand.text,
+    color: Brand.primaryDark,
   },
   divider: {
     height: 1,
@@ -82,9 +82,6 @@ const styles = StyleSheet.create({
   metricColumn: {
     gap: 6,
   },
-  metricColumnRight: {
-    alignItems: 'flex-end',
-  },
   metricLabel: {
     fontSize: 12,
     color: Brand.textMuted,
@@ -92,7 +89,7 @@ const styles = StyleSheet.create({
   metricValue: {
     fontSize: 16,
     fontWeight: '700',
-    color: Brand.text,
+    color: Brand.primaryDark,
   },
   registerButton: {
     borderRadius: 999,
