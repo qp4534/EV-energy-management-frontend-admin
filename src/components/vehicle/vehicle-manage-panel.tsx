@@ -1,0 +1,108 @@
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+import { StatusBadge } from '@/components/common/status-badge';
+import { Brand } from '@/constants/theme';
+import { Vehicle } from '@/types/vehicle';
+import { formatRul } from '@/utils/format-battery';
+
+type VehicleManagePanelProps = {
+  vehicle: Vehicle;
+  status: '경고' | '정상' | null;
+  rul: number | null;
+  onRegisterNew: () => void;
+};
+
+export function VehicleManagePanel({
+  vehicle,
+  status,
+  rul,
+  onRegisterNew,
+}: VehicleManagePanelProps) {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.countLabel}>등록 차량 1대</Text>
+
+      <View style={styles.card}>
+        <Text style={styles.cardLabel}>대표 차량</Text>
+        <Text style={styles.vehicleName}>{vehicle.nickname}</Text>
+        <View style={styles.divider} />
+        <View style={styles.metricsRow}>
+          <View style={styles.metricColumn}>
+            <Text style={styles.metricLabel}>배터리 상태</Text>
+            {status && <StatusBadge status={status} />}
+          </View>
+          <View style={[styles.metricColumn, styles.metricColumnRight]}>
+            <Text style={styles.metricLabel}>예상 배터리 잔존 수명</Text>
+            <Text style={styles.metricValue}>{rul !== null ? formatRul(rul) : '-'}</Text>
+          </View>
+        </View>
+      </View>
+
+      <Pressable style={styles.registerButton} onPress={onRegisterNew}>
+        <Text style={styles.registerButtonText}>+ 차량 등록하기</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    gap: 16,
+  },
+  countLabel: {
+    fontSize: 13,
+    color: Brand.textMuted,
+  },
+  card: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Brand.border,
+    backgroundColor: Brand.card,
+    padding: 16,
+    gap: 8,
+  },
+  cardLabel: {
+    fontSize: 12,
+    color: Brand.textMuted,
+  },
+  vehicleName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Brand.text,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Brand.border,
+    marginVertical: 4,
+  },
+  metricsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  metricColumn: {
+    gap: 6,
+  },
+  metricColumnRight: {
+    alignItems: 'flex-end',
+  },
+  metricLabel: {
+    fontSize: 12,
+    color: Brand.textMuted,
+  },
+  metricValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Brand.text,
+  },
+  registerButton: {
+    borderRadius: 999,
+    backgroundColor: Brand.primary,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  registerButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: Brand.primaryDark,
+  },
+});

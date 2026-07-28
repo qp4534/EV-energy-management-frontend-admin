@@ -26,6 +26,27 @@ export const Colors = {
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
+/**
+ * Fixed brand palette for the MijungE auth/vehicle/battery screens.
+ * These screens follow a dedicated light-only brand look (cream + green),
+ * so they read from `Brand` directly instead of the light/dark `Colors` above.
+ */
+export const Brand = {
+  background: '#F5F1E4',
+  card: '#FFFFFF',
+  border: '#E2E6D8',
+  primary: '#C0E2AF',
+  primaryDark: '#0F3D2E',
+  text: '#1A1A1A',
+  textMuted: '#767A73',
+  label: '#4F7A5B',
+  footerText: '#6B8064',
+  warningBg: '#FBE3C6',
+  warningText: '#C97A2E',
+  successBg: '#DCEFC7',
+  successText: '#4C7A3A',
+} as const;
+
 export const Fonts = Platform.select({
   ios: {
     /** iOS `UIFontDescriptorSystemDesignDefault` */

@@ -1,27 +1,48 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Header } from '@/components/common/header';
+import { VehicleManagePanel } from '@/components/vehicle/vehicle-manage-panel';
+import { VehicleRegisterForm } from '@/components/vehicle/vehicle-register-form';
+import { Brand } from '@/constants/theme';
+import { useVehicle } from '@/hooks/use-vehicle';
+import { useVehicleBatteryStatus } from '@/hooks/use-vehicle-battery-status';
 
 export default function VehicleScreen() {
+  const { vehicle, isRegistered, registerVehicle, clearVehicle } = useVehicle();
+  const { status, rul } = useVehicleBatteryStatus(vehicle?.id);
+
   return (
-    <ThemedView style={styles.container}>
+    <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedText type="title">차량 등록/관리</ThemedText>
+        <Header title={isRegistered ? '차량 관리' : '차량 등록'} />
+        <View style={styles.content}>
+          {isRegistered && vehicle ? (
+            <VehicleManagePanel
+              vehicle={vehicle}
+              status={status}
+              rul={rul}
+              onRegisterNew={clearVehicle}
+            />
+          ) : (
+            <VehicleRegisterForm onSubmit={registerVehicle} />
+          )}
+        </View>
       </SafeAreaView>
-    </ThemedView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Brand.background,
   },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.four,
+  },
+  content: {
+    flex: 1,
+    padding: 24,
   },
 });
