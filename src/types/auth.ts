@@ -18,4 +18,11 @@ export type SignupInfoRequest = {
   name: string;
   email: string;
   password: string;
+  birthDate: string;
+  phone: string;
+};
+
+export type FindIdResult = {
+  maskedId: string;
+  joinedAt: string;
 };
