@@ -10,13 +10,38 @@ import { useTheme } from '@/hooks/use-theme';
 type HeaderProps = {
   title: string;
   showBack?: boolean;
+  titleColor?: string;
+  align?: 'center' | 'left';
+  backgroundColor?: string;
 };
 
-export function Header({ title, showBack = false }: HeaderProps) {
+export function Header({ title, showBack = false, titleColor, align = 'center', backgroundColor }: HeaderProps) {
   const theme = useTheme();
 
+  if (align === 'left') {
+    return (
+      <ThemedView style={[styles.container, backgroundColor ? { backgroundColor } : null]}>
+        {showBack && (
+          <Pressable onPress={() => router.back()} hitSlop={Spacing.two}>
+            <SymbolView
+              name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
+              size={20}
+              tintColor={titleColor ?? theme.text}
+            />
+          </Pressable>
+        )}
+        <ThemedText
+          type="default"
+          style={[styles.titleLeft, titleColor ? { color: titleColor } : null]}
+          numberOfLines={1}>
+          {title}
+        </ThemedText>
+      </ThemedView>
+    );
+  }
+
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, backgroundColor ? { backgroundColor } : null]}>
       <View style={styles.side}>
         {showBack && (
           <Pressable onPress={() => router.back()} hitSlop={Spacing.two}>
@@ -28,7 +53,10 @@ export function Header({ title, showBack = false }: HeaderProps) {
           </Pressable>
         )}
       </View>
-      <ThemedText type="subtitle" style={styles.title} numberOfLines={1}>
+      <ThemedText
+        type="subtitle"
+        style={[styles.title, titleColor ? { color: titleColor } : null]}
+        numberOfLines={1}>
         {title}
       </ThemedText>
       <View style={styles.side} />
@@ -50,5 +78,9 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     textAlign: 'center',
+  },
+  titleLeft: {
+    fontSize: 20,
+    fontWeight: '700',
   },
 });

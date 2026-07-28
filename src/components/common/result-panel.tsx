@@ -1,5 +1,5 @@
 import { SymbolView } from 'expo-symbols';
-import { PropsWithChildren } from 'react';
+import { Fragment, PropsWithChildren } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Brand } from '@/constants/theme';
@@ -20,30 +20,38 @@ export function ResultPanel({
   onSecondaryPress,
   children,
 }: ResultPanelProps) {
+  const [title, ...rest] = message.split('\n');
+  const subtitle = rest.join('\n');
+
   return (
-    <View style={styles.container}>
-      <View style={styles.iconCircle}>
-        <SymbolView
-          name={{ ios: 'checkmark', android: 'check', web: 'check' }}
-          size={28}
-          tintColor={Brand.primaryDark}
-        />
+    <Fragment>
+      <View style={styles.container}>
+        <View style={styles.iconCircle}>
+          <SymbolView
+            name={{ ios: 'checkmark', android: 'check', web: 'check' }}
+            size={45}
+            tintColor={Brand.primaryDark}
+          />
+        </View>
+
+        <View style={styles.messageGroup}>
+          <Text style={styles.title}>{title}</Text>
+          {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+        </View>
+
+        {children && <View style={styles.infoBox}>{children}</View>}
+
+        <Pressable onPress={onPrimaryPress} style={styles.primaryButton}>
+          <Text style={styles.primaryButtonText}>{primaryLabel}</Text>
+        </Pressable>
       </View>
 
-      <Text style={styles.message}>{message}</Text>
-
-      {children && <View style={styles.infoBox}>{children}</View>}
-
-      <Pressable onPress={onPrimaryPress} style={styles.primaryButton}>
-        <Text style={styles.primaryButtonText}>{primaryLabel}</Text>
-      </Pressable>
-
       {secondaryLabel && onSecondaryPress && (
-        <Pressable onPress={onSecondaryPress}>
+        <Pressable style={styles.secondaryLinkRow} onPress={onSecondaryPress}>
           <Text style={styles.secondaryLink}>{secondaryLabel}</Text>
         </Pressable>
       )}
-    </View>
+    </Fragment>
   );
 }
 
@@ -51,29 +59,45 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     gap: 16,
-    paddingVertical: 24,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Brand.border,
+    backgroundColor: Brand.card,
+    padding: 24,
   },
   iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: Brand.primary,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: Brand.resultCheckBg,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: Brand.primaryDark,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  message: {
-    fontSize: 15,
-    fontWeight: '600',
+  messageGroup: {
+    gap: 4,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '800',
     color: Brand.text,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 13,
+    color: Brand.label,
     textAlign: 'center',
   },
   infoBox: {
     width: '100%',
     borderRadius: 12,
-    backgroundColor: Brand.background,
-    borderWidth: 1,
-    borderColor: Brand.border,
-    padding: 16,
+    backgroundColor: Brand.resultInfoBg,
+    padding: 30,
     gap: 4,
     alignItems: 'center',
   },
@@ -89,9 +113,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Brand.primaryDark,
   },
+  secondaryLinkRow: {
+    alignSelf: 'flex-end',
+    marginTop: 16,
+  },
   secondaryLink: {
     fontSize: 13,
-    color: Brand.textMuted,
+    fontWeight: '700',
+    color: Brand.primaryDark,
     textDecorationLine: 'underline',
   },
 });
