@@ -45,6 +45,8 @@ export const Brand = {
   warningText: '#C97A2E',
   successBg: '#DCEFC7',
   successText: '#4C7A3A',
+  resultCheckBg: '#E6EDB7',
+  resultInfoBg: '#F0F4D4',
 } as const;
 
 export const Fonts = Platform.select({
