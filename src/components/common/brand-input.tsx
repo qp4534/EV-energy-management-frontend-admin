@@ -1,5 +1,6 @@
 import { SymbolView } from 'expo-symbols';
-import { StyleSheet, TextInput, TextInputProps, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, TextInput, TextInputProps, View } from 'react-native';
 
 import { Brand } from '@/constants/theme';
 
@@ -7,7 +8,9 @@ type BrandInputProps = TextInputProps & {
   icon?: 'envelope' | 'lock';
 };
 
-export function BrandInput({ icon, style, ...rest }: BrandInputProps) {
+export function BrandInput({ icon, style, secureTextEntry, ...rest }: BrandInputProps) {
+  const [isHidden, setIsHidden] = useState(secureTextEntry);
+
   return (
     <View style={styles.container}>
       {icon && (
@@ -21,7 +24,25 @@ export function BrandInput({ icon, style, ...rest }: BrandInputProps) {
           tintColor={Brand.textMuted}
         />
       )}
-      <TextInput style={[styles.input, style]} placeholderTextColor={Brand.textMuted} {...rest} />
+      <TextInput
+        style={[styles.input, style]}
+        placeholderTextColor={Brand.textMuted}
+        secureTextEntry={secureTextEntry && isHidden}
+        {...rest}
+      />
+      {secureTextEntry && (
+        <Pressable onPress={() => setIsHidden((value) => !value)} hitSlop={8}>
+          <SymbolView
+            name={{
+              ios: isHidden ? 'eye.slash' : 'eye',
+              android: isHidden ? 'visibility_off' : 'visibility',
+              web: isHidden ? 'visibility_off' : 'visibility',
+            }}
+            size={18}
+            tintColor={Brand.textMuted}
+          />
+        </Pressable>
+      )}
     </View>
   );
 }

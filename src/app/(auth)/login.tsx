@@ -17,9 +17,13 @@ export default function LoginScreen() {
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView
+          style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled">
-          <BrandMark />
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.logoWrapper}>
+            <BrandMark />
+          </View>
 
           <View style={styles.card}>
             <Text style={styles.title}>Login</Text>
@@ -67,8 +71,10 @@ export default function LoginScreen() {
             </Pressable>
           </View>
 
-          <Text style={styles.footer}>@EV energy resource management platform</Text>
+          <View style={styles.bottomSpacer} />
         </ScrollView>
+
+        <Text style={styles.footer}>@EV energy resource management platform</Text>
       </SafeAreaView>
     </View>
   );
@@ -82,15 +88,26 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
+  scroll: {
+    flex: 1,
+  },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 32,
-    gap: 24,
+    paddingVertical: 16,
+  },
+  logoWrapper: {
+    flex: 1,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bottomSpacer: {
+    flex: 1,
+    minHeight: 16,
   },
   card: {
-    borderRadius: 20,
+    borderRadius: 15,
     backgroundColor: Brand.card,
     padding: 24,
     gap: 12,
@@ -106,7 +123,7 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 13,
-    color: Brand.textMuted,
+    color: Brand.label,
   },
   linkRow: {
     flexDirection: 'row',
@@ -117,14 +134,14 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 12,
-    color: Brand.textMuted,
+    color: Brand.label,
   },
   linkDivider: {
     fontSize: 12,
     color: Brand.border,
   },
   loginButton: {
-    borderRadius: 999,
+    borderRadius: 20,
     backgroundColor: Brand.primary,
     paddingVertical: 16,
     alignItems: 'center',
@@ -142,7 +159,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   signupButton: {
-    borderRadius: 999,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: Brand.border,
     paddingVertical: 14,
@@ -155,7 +172,9 @@ const styles = StyleSheet.create({
   },
   footer: {
     fontSize: 11,
-    color: Brand.textMuted,
+    color: Brand.footerText,
     textAlign: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
 });
