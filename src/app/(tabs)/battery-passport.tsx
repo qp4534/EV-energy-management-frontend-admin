@@ -3,7 +3,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BatteryLifecycle } from '@/components/battery-lifecycle';
 import { BatterySohRing } from '@/components/battery-soh-ring';
-import { BrandMark } from '@/components/common/brand-mark';
 import { StatusBadge } from '@/components/common/status-badge';
 import { Brand, Spacing } from '@/constants/theme';
 import { useBatteryPassport } from '@/hooks/use-battery-passport';
@@ -18,7 +17,10 @@ export default function BatteryPassportScreen() {
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.banner}>
-          <BrandMark tone="light" size="small" />
+          <View style={styles.bannerLogoRow}>
+            <Text style={styles.bannerLogoBolt}>⚡</Text>
+            <Text style={styles.bannerLogoText}>MijungE</Text>
+          </View>
           <Text style={styles.bannerTitle}>배터리 여권</Text>
         </View>
 
@@ -90,15 +92,34 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   banner: {
-    backgroundColor: Brand.primaryDark,
-    paddingHorizontal: Spacing.three,
-    paddingTop: 12,
-    paddingBottom: 24,
-    gap: 8,
+    backgroundColor: '#113B29',
+    paddingTop: 55,
+    paddingBottom: 25,
+    paddingHorizontal: Spacing.four,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  bannerLogoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  bannerLogoBolt: {
+    color: '#3CD070',
+    fontSize: 18,
+    fontWeight: '700',
+    marginRight: 4,
+  },
+  bannerLogoText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    opacity: 0.9,
   },
   bannerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
+    fontSize: 25,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
   content: {
