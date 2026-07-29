@@ -1,9 +1,11 @@
-import { Image } from 'expo-image';
 import * as SplashScreen from 'expo-splash-screen';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
+
+import { SplashContent } from '@/components/common/splash-content';
+import { Brand } from '@/constants/theme';
 
 const DURATION = 600;
 
@@ -32,7 +34,7 @@ export function AnimatedSplashOverlay() {
     },
   });
 
-  const image = <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />;
+  const content = <SplashContent />;
 
   return animate ? (
     <Animated.View
@@ -43,7 +45,7 @@ export function AnimatedSplashOverlay() {
         }
       })}
       style={styles.splashOverlay}>
-      {image}
+      {content}
     </Animated.View>
   ) : (
     <View
@@ -53,19 +55,15 @@ export function AnimatedSplashOverlay() {
         });
       }}
       style={styles.splashOverlay}>
-      {image}
+      {content}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  image: {
-    width: 76,
-    height: 71,
-  },
   splashOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: '#208AEF',
+    backgroundColor: Brand.primaryDark,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1000,
