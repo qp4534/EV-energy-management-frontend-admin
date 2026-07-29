@@ -1,11 +1,8 @@
+import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
 
 type HeaderProps = {
   title: string;
@@ -15,52 +12,66 @@ type HeaderProps = {
   backgroundColor?: string;
 };
 
-export function Header({ title, showBack = false, titleColor, align = 'center', backgroundColor }: HeaderProps) {
-  const theme = useTheme();
+export function Header({ 
+  title, 
+  showBack = false, 
+  titleColor = '#113B29', 
+  align = 'center', 
+  backgroundColor = '#F9F9F6' 
+}: HeaderProps) {
 
+  // 왼쪽 정렬 헤더 레이아웃
   if (align === 'left') {
     return (
-      <ThemedView style={[styles.container, backgroundColor ? { backgroundColor } : null]}>
+      <View style={[styles.container, { backgroundColor }]}>
         {showBack && (
-          <Pressable onPress={() => router.back()} hitSlop={Spacing.two}>
-            <SymbolView
-              name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
-              size={20}
-              tintColor={titleColor ?? theme.text}
-            />
+          <Pressable 
+            onPress={() => router.back()} 
+            hitSlop={Spacing.two}
+            style={styles.backButton}
+          >
+            <Feather name="chevron-left" size={24} color={titleColor} />
           </Pressable>
         )}
-        <ThemedText
-          type="default"
-          style={[styles.titleLeft, titleColor ? { color: titleColor } : null]}
-          numberOfLines={1}>
+        <Text
+          style={[styles.titleLeft, { color: titleColor }]}
+          numberOfLines={1}
+        >
           {title}
-        </ThemedText>
-      </ThemedView>
+        </Text>
+      </View>
     );
   }
 
+  // 중앙 정렬 헤더 레이아웃 
   return (
-    <ThemedView style={[styles.container, backgroundColor ? { backgroundColor } : null]}>
+    <View style={[styles.container, { backgroundColor }]}>
+      {/* 왼쪽 백버튼 영역 */}
       <View style={styles.side}>
         {showBack && (
-          <Pressable onPress={() => router.back()} hitSlop={Spacing.two}>
-            <SymbolView
-              name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
-              size={20}
-              tintColor={theme.text}
-            />
+          <Pressable 
+            onPress={() => router.back()} 
+            hitSlop={Spacing.two}
+            style={styles.backButton}
+          >
+            <Feather name="chevron-left" size={24} color={titleColor} />
           </Pressable>
         )}
       </View>
-      <ThemedText
-        type="subtitle"
-        style={[styles.title, titleColor ? { color: titleColor } : null]}
-        numberOfLines={1}>
-        {title}
-      </ThemedText>
+
+      {/* 중앙 타이틀 영역 */}
+      <View style={styles.titleContainer}>
+        <Text
+          style={[styles.title, { color: titleColor }]}
+          numberOfLines={1}
+        >
+          {title}
+        </Text>
+      </View>
+
+      {/* 오른쪽 대칭용 빈 영역 */}
       <View style={styles.side} />
-    </ThemedView>
+    </View>
   );
 }
 
@@ -68,19 +79,31 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.three,
-    gap: Spacing.two,
+    paddingTop: 60, 
+    paddingBottom: 16,
+    paddingHorizontal: 20,
+  },
+  backButton: {
+    padding: 4,
   },
   side: {
-    width: Spacing.five,
+    width: 32, 
+    justifyContent: 'center',
+  },
+  titleContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   title: {
-    flex: 1,
+    fontSize: 18, 
+    fontWeight: '700', 
     textAlign: 'center',
   },
   titleLeft: {
     fontSize: 20,
     fontWeight: '700',
+    marginLeft: 4,
   },
 });
+
