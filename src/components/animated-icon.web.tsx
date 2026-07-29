@@ -1,3 +1,68 @@
+import { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import Animated, { Easing, Keyframe } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+
+import { SplashContent } from '@/components/common/splash-content';
+import { Brand } from '@/constants/theme';
+
+const DURATION = 600;
+const HOLD_DURATION = 900;
+
 export function AnimatedSplashOverlay() {
-  return null;
+  const [animate, setAnimate] = useState(false);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setAnimate(true), HOLD_DURATION);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!visible) return null;
+
+  const splashKeyframe = new Keyframe({
+    0: {
+      transform: [{ scale: 1 }],
+      opacity: 1,
+    },
+    20: {
+      opacity: 1,
+    },
+    70: {
+      opacity: 0,
+      easing: Easing.elastic(0.7),
+    },
+    100: {
+      opacity: 0,
+      transform: [{ scale: 1 }],
+      easing: Easing.elastic(0.7),
+    },
+  });
+
+  return animate ? (
+    <Animated.View
+      entering={splashKeyframe.duration(DURATION).withCallback((finished) => {
+        'worklet';
+        if (finished) {
+          scheduleOnRN(setVisible, false);
+        }
+      })}
+      style={styles.splashOverlay}>
+      <SplashContent />
+    </Animated.View>
+  ) : (
+    <View style={styles.splashOverlay}>
+      <SplashContent />
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  splashOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: Brand.primaryDark,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  },
+});
