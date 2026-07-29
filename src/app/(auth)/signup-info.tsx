@@ -39,7 +39,9 @@ export default function SignupInfoScreen() {
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled">
-          <BrandMark />
+          <View style={styles.logoWrapper}>
+            <BrandMark />
+          </View>
 
           <View style={styles.card}>
             <Text style={styles.title}>Sign In</Text>
@@ -110,9 +112,9 @@ export default function SignupInfoScreen() {
               <Text style={styles.submitButtonText}>Sign In</Text>
             </Pressable>
           </View>
-
-          <Text style={styles.footer}>@EV energy resource management platform</Text>
         </ScrollView>
+
+        <Text style={styles.footer}>@EV energy resource management platform</Text>
       </SafeAreaView>
     </View>
   );
@@ -131,6 +133,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 32,
     gap: 24,
+  },
+  logoWrapper: {
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   card: {
     borderRadius: 20,
@@ -167,7 +174,9 @@ const styles = StyleSheet.create({
   },
   footer: {
     fontSize: 11,
-    color: Brand.textMuted,
+    color: Brand.footerText,
     textAlign: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
 });

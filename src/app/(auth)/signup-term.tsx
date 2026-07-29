@@ -14,7 +14,9 @@ export default function SignupTermScreen() {
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <BrandMark />
+          <View style={styles.logoWrapper}>
+            <BrandMark />
+          </View>
 
           <View style={styles.card}>
             <Text style={styles.title}>이용약관</Text>
@@ -38,6 +40,7 @@ export default function SignupTermScreen() {
                   checked={checked[term.key]}
                   onToggle={() => toggleOne(term.key)}
                   showChevron
+                  onPressDetail={() => router.push({ pathname: '/term-detail', params: { key: term.key } })}
                 />
               ))}
             </View>
@@ -49,9 +52,9 @@ export default function SignupTermScreen() {
               <Text style={styles.nextButtonText}>다음</Text>
             </Pressable>
           </View>
-
-          <Text style={styles.footer}>@EV energy resource management platform</Text>
         </ScrollView>
+
+        <Text style={styles.footer}>@EV energy resource management platform</Text>
       </SafeAreaView>
     </View>
   );
@@ -70,6 +73,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 32,
     gap: 24,
+  },
+  logoWrapper: {
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   card: {
     borderRadius: 20,
@@ -115,7 +123,9 @@ const styles = StyleSheet.create({
   },
   footer: {
     fontSize: 11,
-    color: Brand.textMuted,
+    color: Brand.footerText,
     textAlign: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
 });
