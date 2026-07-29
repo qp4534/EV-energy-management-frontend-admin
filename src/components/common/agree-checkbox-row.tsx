@@ -10,6 +10,7 @@ type AgreeCheckboxRowProps = {
   bold?: boolean;
   description?: string;
   showChevron?: boolean;
+  onPressDetail?: () => void;
 };
 
 export function AgreeCheckboxRow({
@@ -19,29 +20,33 @@ export function AgreeCheckboxRow({
   bold = false,
   description,
   showChevron = false,
+  onPressDetail,
 }: AgreeCheckboxRowProps) {
   return (
     <View style={styles.container}>
-      <Pressable onPress={onToggle} style={styles.row}>
-        <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
-          {checked && (
-            <SymbolView
-              name={{ ios: 'checkmark', android: 'check', web: 'check' }}
-              size={12}
-              tintColor={Brand.primaryDark}
-            />
-          )}
-        </View>
-        <Text style={[styles.label, bold && styles.labelBold]}>{label}</Text>
+      <View style={styles.row}>
+        <Pressable onPress={onToggle} style={styles.rowTap} hitSlop={4}>
+          <View style={[styles.checkbox, checked && styles.checkboxChecked]}>
+            {checked && (
+              <SymbolView
+                name={{ ios: 'checkmark', android: 'check', web: 'check' }}
+                size={12}
+                tintColor={Brand.primaryDark}
+              />
+            )}
+          </View>
+          <Text style={[styles.label, bold && styles.labelBold]}>{label}</Text>
+        </Pressable>
         {showChevron && (
-          <SymbolView
-            name={{ ios: 'chevron.down', android: 'expand_more', web: 'expand_more' }}
-            size={16}
-            tintColor={Brand.textMuted}
-            style={styles.chevron}
-          />
+          <Pressable onPress={onPressDetail ?? onToggle} hitSlop={8} style={styles.chevron}>
+            <SymbolView
+              name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }}
+              size={16}
+              tintColor={Brand.textMuted}
+            />
+          </Pressable>
         )}
-      </Pressable>
+      </View>
 
       {description && <Text style={styles.description}>{description}</Text>}
     </View>
@@ -53,6 +58,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  rowTap: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,

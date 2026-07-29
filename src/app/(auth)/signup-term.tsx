@@ -40,6 +40,7 @@ export default function SignupTermScreen() {
                   checked={checked[term.key]}
                   onToggle={() => toggleOne(term.key)}
                   showChevron
+                  onPressDetail={() => router.push({ pathname: '/term-detail', params: { key: term.key } })}
                 />
               ))}
             </View>
