@@ -1,9 +1,23 @@
+import { useVehicleStore } from '@/store/vehicle-store';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 export default function ReportScreen() {
   const router = useRouter();
+
+  // 👤 전역 상태 저장소 데이터 매핑
+  const { vehicle } = useVehicleStore();
+  const currentVehicleModel = vehicle?.model || '차량 미등록'; // 현재 차량 모델명 (없으면 기본값)
+
+  // 🤖 [AI 연동 영역 가변 데이터 상태 정의]
+  // 백엔드 API 연동 시, 아래 상태값들을 API 응답 데이터로 대체 예정
+  const [reportTime, setReportTime] = useState<string>("2026/07/15 13:30");
+  const [batteryTemperature, setBatteryTemperature] = useState<number>(50);
+  const [aiAnalysisReason, setAiAnalysisReason] = useState<string>(
+    "최근 7일 평균 대비 충전 중 배터리 온도가 12°C 높게 유지되고 있으며, 동일 시간대 급속 충전 사용 빈도가 증가한 점이 이번 판정에 가장 크게 반영됐어요."
+  );
 
   return (
     // 전체 배경
@@ -49,9 +63,9 @@ export default function ReportScreen() {
           </Text>
         </View>
 
-        {/* 3. 발생 정보 카드 영역 */}
+        {/* 3. 발생 정보 카드 영역(AI연동 예정) */}
         <View style={{ 
-          backgroundColor: 'white', // 💡 '#white'에서 'white'로 수정
+          backgroundColor: 'white', 
           borderRadius: 24, 
           padding: 20, 
           borderWidth: 1, 
@@ -66,26 +80,25 @@ export default function ReportScreen() {
           {/* 발생시각 행 */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}>
             <Text style={{ color: '#8FA196', fontSize: 14, fontWeight: '500' }}>발생시각</Text>
-            <Text style={{ color: '#113B29', fontSize: 16, fontWeight: 'bold' }}>2026/07/15 13:30</Text>
+            <Text style={{ color: '#113B29', fontSize: 16, fontWeight: 'bold' }}>{reportTime}</Text>
           </View>
           
           {/* 차량명 행 */}
-          {/* 💡 py: 14 와 중복 코드를 제거하고 깔끔하게 정돈했습니다. */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' }}>
             <Text style={{ color: '#8FA196', fontSize: 14, fontWeight: '500' }}>차량</Text>
-            <Text style={{ color: '#113B29', fontSize: 16, fontWeight: 'bold' }}>아이오닉5</Text>
+            <Text style={{ color: '#113B29', fontSize: 16, fontWeight: 'bold' }}>{currentVehicleModel}</Text>
           </View>
           
           {/* 배터리 온도 행 */}
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 14 }}>
             <Text style={{ color: '#8FA196', fontSize: 14, fontWeight: '500' }}>배터리 온도</Text>
-            <Text style={{ color: '#113B29', fontSize: 16, fontWeight: 'bold' }}>50 °C</Text>
+            <Text style={{ color: '#113B29', fontSize: 16, fontWeight: 'bold' }}>{batteryTemperature} °C</Text>
           </View>
         </View>
 
-        {/* 4. AI 분석 근거 카드 영역 */}
+        {/* 4. AI 분석 근거 카드 영역(AI연동 예정) */}
         <View style={{ 
-          backgroundColor: 'white', // 💡 '#white'에서 'white'로 수정
+          backgroundColor: 'white',
           borderRadius: 24, 
           padding: 20, 
           borderWidth: 1, 
@@ -102,8 +115,7 @@ export default function ReportScreen() {
             <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#113B29', marginLeft: 6 }}>AI 분석 근거</Text>
           </View>
           <Text style={{ color: '#556B5C', fontSize: 14, lineHeight: 24, fontWeight: '500' }}>
-            최근 7일 평균 대비 충전 중 배터리 온도가 12°C 높게 유지되고 있으며, 
-            동일 시간대 급속 충전 사용 빈도가 증가한 점이 이번 판정에 가장 크게 반영됐어요.
+            {aiAnalysisReason}
           </Text>
         </View>
         
