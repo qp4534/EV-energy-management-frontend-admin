@@ -1,3 +1,4 @@
+import { useAuthStore } from '@/store/auth-store';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -5,6 +6,8 @@ import { Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View 
 
 export default function MyPageIndexScreen() {
   const router = useRouter();
+  // Zustand 스토어에서 유저 데이터와 액션 함수 가져오기
+  const { user, logout, withdraw } = useAuthStore();
   
   // 알림 설정 ON/OFF 토글 상태
   const [isPushEnabled, setIsPushEnabled] = useState<boolean>(true);
@@ -25,11 +28,11 @@ export default function MyPageIndexScreen() {
     
     if (modalType === 'logout') {
       console.log('로그아웃 처리 완료');
-      // 여기에 로그인 상태 해제 로직 추가 (예: token 삭제 등)
+      logout(); // 로그아웃 처리 함수 호출
       router.replace('/(auth)/login'); // 로그인 화면으로 이동
     } else {
       console.log('회원탈퇴 처리 완료');
-      // 여기에 계정 삭제 API 호출 로직 추가
+      withdraw(); // 회원 탈퇴 처리 함수 호출
       router.replace('/(auth)/login');
     }
   };
@@ -84,8 +87,9 @@ export default function MyPageIndexScreen() {
           >
             <Feather name="user" size={48} color="#113B29" />
           </View>
+          {/* 회원가입/로그인 시 입력한 유저 이름 연동 */}
           <Text style={{ color: '#113B29', fontSize: 16, fontWeight: 'bold' }}>
-            홍길*님
+            {user?.name ? `${user.name}님` : '사용자님'} 
           </Text>
         </View>
 
@@ -129,7 +133,7 @@ export default function MyPageIndexScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* 4. 로그아웃 (새로운 커스텀 팝업 연동) */}
+        {/* 4. 로그아웃 (팝업 연동) */}
         <TouchableOpacity 
           onPress={() => openModal('logout')} 
           style={styles.menuCard}
@@ -137,7 +141,7 @@ export default function MyPageIndexScreen() {
           <Text style={styles.menuText}>로그아웃</Text>
         </TouchableOpacity>
 
-        {/* 5. 회원 탈퇴 (디자인 시안에 맞춰 추가) */}
+        {/* 5. 회원 탈퇴 (팝업 연동) */}
         <TouchableOpacity 
           onPress={() => openModal('deleteAccount')} 
           style={styles.menuCard}
@@ -147,7 +151,7 @@ export default function MyPageIndexScreen() {
 
       </ScrollView>
 
-      {/* 🛠️ 팝업 디자인 시안 반영 모달 (웹/앱 공용) */}
+      {/* 🛠️ 팝업 디자인 모달 */}
       <Modal
         visible={modalVisible}
         transparent
@@ -233,7 +237,7 @@ const styles = StyleSheet.create({
   }
 });
 
-// 🛠️ 시안 디자인을 완벽하게 재현한 팝업 스타일
+// 🛠️ 팝업 스타일
 const popupStyles = StyleSheet.create({
   overlay: {
     flex: 1,
