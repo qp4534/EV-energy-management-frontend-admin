@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { SymbolView } from 'expo-symbols';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -13,6 +14,16 @@ export default function SignupTermScreen() {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
+        <View style={styles.topBar}>
+          <Pressable onPress={() => router.back()} hitSlop={12} style={styles.backButton}>
+            <SymbolView
+              name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
+              size={20}
+              tintColor={Brand.textMuted}
+            />
+          </Pressable>
+        </View>
+
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.logoWrapper}>
             <BrandMark />
@@ -67,6 +78,14 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+  },
+  topBar: {
+    paddingHorizontal: 20,
+    paddingTop: 15,
+  },
+  backButton: {
+    alignSelf: 'flex-start',
+    padding: 4,
   },
   scrollContent: {
     flexGrow: 1,
