@@ -4,9 +4,10 @@ import { Brand } from '@/constants/theme';
 
 type StatusBadgeProps = {
   status: '경고' | '정상';
+  label?: string;
 };
 
-export function StatusBadge({ status }: StatusBadgeProps) {
+export function StatusBadge({ status, label }: StatusBadgeProps) {
   const isWarning = status === '경고';
 
   return (
@@ -16,7 +17,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
         { backgroundColor: isWarning ? Brand.warningBg : Brand.successBg },
       ]}>
       <Text style={[styles.text, { color: isWarning ? Brand.warningText : Brand.successText }]}>
-        {status}
+        {label ?? status}
       </Text>
     </View>
   );

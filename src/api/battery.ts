@@ -4,7 +4,7 @@ import { BatteryPassport } from '@/types/battery';
 export async function getBatteryPassport(vehicleId: string): Promise<BatteryPassport> {
   return mockDelay({
     vehicleId,
-    soh: 96.4,
+    soh: 90,
     rul: 3.3,
     temperatureC: 50,
     voltage: 431,
