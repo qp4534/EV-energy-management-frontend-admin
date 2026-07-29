@@ -3,9 +3,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BatteryLifecycle } from '@/components/battery-lifecycle';
 import { BatterySohRing } from '@/components/battery-soh-ring';
-import { BrandMark } from '@/components/common/brand-mark';
 import { StatusBadge } from '@/components/common/status-badge';
-import { Brand } from '@/constants/theme';
+import { Brand, Spacing } from '@/constants/theme';
 import { useBatteryPassport } from '@/hooks/use-battery-passport';
 import { formatRul, getBatteryStatus } from '@/utils/format-battery';
 import { maskName } from '@/utils/format-name';
@@ -18,7 +17,10 @@ export default function BatteryPassportScreen() {
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.banner}>
-          <BrandMark tone="light" size="small" />
+          <View style={styles.bannerLogoRow}>
+            <Text style={styles.bannerLogoBolt}>⚡</Text>
+            <Text style={styles.bannerLogoText}>MijungE</Text>
+          </View>
           <Text style={styles.bannerTitle}>배터리 여권</Text>
         </View>
 
@@ -30,21 +32,27 @@ export default function BatteryPassportScreen() {
                   <View style={styles.summaryIcon}>
                     <Text style={styles.summaryIconText}>🔋</Text>
                   </View>
-                  <Text style={styles.summaryText}>
-                    {vehicle.nickname},{'\n'}
-                    {user ? maskName(user.name) : ''}님의 대표차량
-                  </Text>
+                  <View style={styles.summaryTextColumn}>
+                    <Text style={styles.summaryText}>
+                      {vehicle.nickname},{'\n'}
+                      {user ? maskName(user.name) : ''}님의 대표차량
+                    </Text>
+                    {status && <StatusBadge status={status} label={`배터리 ${status}`} />}
+                  </View>
                 </View>
-                {status && <StatusBadge status={status} />}
               </View>
 
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>배터리 상태</Text>
                 <View style={styles.statusRow}>
-                  <BatterySohRing soh={passport.soh} />
+                  <View style={styles.ringColumn}>
+                    <BatterySohRing soh={passport.soh} />
+                  </View>
                   <View style={styles.statusRight}>
-                    {status && <StatusBadge status={status} />}
-                    <Text style={styles.rulText}>예상 잔존 수명 {formatRul(passport.rul)}</Text>
+                    <View style={styles.statusRightInner}>
+                      {status && <StatusBadge status={status} />}
+                      <Text style={styles.rulText}>예상 잔존 수명 {formatRul(passport.rul)}</Text>
+                    </View>
                   </View>
                 </View>
                 <View style={styles.metricsRow}>
@@ -84,19 +92,39 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   banner: {
-    backgroundColor: Brand.primaryDark,
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: 24,
-    gap: 8,
+    backgroundColor: '#113B29',
+    paddingTop: 55,
+    paddingBottom: 25,
+    paddingHorizontal: Spacing.four,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+  },
+  bannerLogoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  bannerLogoBolt: {
+    color: '#3CD070',
+    fontSize: 18,
+    fontWeight: '700',
+    marginRight: 4,
+  },
+  bannerLogoText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    opacity: 0.9,
   },
   bannerTitle: {
-    fontSize: 22,
-    fontWeight: '800',
+    fontSize: 25,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
   content: {
-    padding: 24,
+    paddingHorizontal: Spacing.three,
+    paddingVertical: 24,
     gap: 16,
   },
   card: {
@@ -108,7 +136,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   cardTitle: {
-    fontSize: 15,
+    fontSize: 20,
     fontWeight: '700',
     color: Brand.text,
   },
@@ -118,35 +146,48 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   summaryIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    flex: 1,
+    aspectRatio: 1,
+    borderRadius: 16,
     backgroundColor: Brand.background,
     alignItems: 'center',
     justifyContent: 'center',
   },
   summaryIconText: {
-    fontSize: 20,
+    fontSize: 32,
+  },
+  summaryTextColumn: {
+    flex: 2,
+    gap: 8,
+    alignItems: 'flex-start',
   },
   summaryText: {
-    fontSize: 15,
+    fontSize: 23,
     fontWeight: '700',
     color: Brand.text,
-    flex: 1,
   },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 20,
   },
+  ringColumn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   statusRight: {
-    gap: 8,
+    flex: 2,
     alignItems: 'flex-start',
   },
+  statusRightInner: {
+    gap: 8,
+    alignItems: 'center',
+  },
   rulText: {
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: '700',
-    color: Brand.text,
+    color: Brand.label,
   },
   metricsRow: {
     flexDirection: 'row',
@@ -163,10 +204,10 @@ const styles = StyleSheet.create({
   metricValue: {
     fontSize: 14,
     fontWeight: '700',
-    color: Brand.text,
+    color: Brand.label,
   },
   metricLabel: {
     fontSize: 11,
-    color: Brand.textMuted,
+    color: Brand.label,
   },
 });
