@@ -39,12 +39,13 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: Brand.primary,
+    marginTop: 5,
+    backgroundColor: Brand.resultCheckBg,
   },
   line: {
     flex: 1,
     width: 2,
-    backgroundColor: Brand.border,
+    backgroundColor: Brand.resultCheckBg,
     marginVertical: 2,
     minHeight: 24,
   },
@@ -55,10 +56,10 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '700',
-    color: Brand.text,
+    color: Brand.label,
   },
   date: {
     fontSize: 13,
-    color: Brand.textMuted,
+    color: Brand.label,
   },
 });
