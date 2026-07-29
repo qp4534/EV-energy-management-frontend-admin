@@ -13,16 +13,25 @@ type HeaderProps = {
   titleColor?: string;
   align?: 'center' | 'left';
   backgroundColor?: string;
+  onBackPress?: () => void;
 };
 
-export function Header({ title, showBack = false, titleColor, align = 'center', backgroundColor }: HeaderProps) {
+export function Header({
+  title,
+  showBack = false,
+  titleColor,
+  align = 'center',
+  backgroundColor,
+  onBackPress,
+}: HeaderProps) {
   const theme = useTheme();
+  const handleBack = onBackPress ?? (() => router.back());
 
   if (align === 'left') {
     return (
       <ThemedView style={[styles.container, backgroundColor ? { backgroundColor } : null]}>
         {showBack && (
-          <Pressable onPress={() => router.back()} hitSlop={Spacing.two}>
+          <Pressable onPress={handleBack} hitSlop={Spacing.two}>
             <SymbolView
               name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
               size={20}
@@ -44,7 +53,7 @@ export function Header({ title, showBack = false, titleColor, align = 'center', 
     <ThemedView style={[styles.container, backgroundColor ? { backgroundColor } : null]}>
       <View style={styles.side}>
         {showBack && (
-          <Pressable onPress={() => router.back()} hitSlop={Spacing.two}>
+          <Pressable onPress={handleBack} hitSlop={Spacing.two}>
             <SymbolView
               name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
               size={20}
