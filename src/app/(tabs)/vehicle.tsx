@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -21,6 +22,7 @@ export default function VehicleScreen() {
           align="left"
           titleColor={Brand.primaryDark}
           backgroundColor={Brand.background}
+          onBackPress={() => (router.canGoBack() ? router.back() : router.push('/(tabs)/home'))}
         />
         <View style={styles.content}>
           {isRegistered && vehicle ? (
