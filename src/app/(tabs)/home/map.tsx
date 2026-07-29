@@ -17,7 +17,7 @@ export default function MapScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // 📍 더미 데이터 (시안 이미지 기준 매핑)
+  // 📍 더미 데이터 
   // 추후 실제 구현 시: expo-location으로 사용자 위/경도를 딴 후 백엔드 API에서 가까운 목록을 fetch 받아옵니다.
   const [stations] = useState<ChargingStation[]>([
     {
@@ -42,7 +42,7 @@ export default function MapScreen() {
     <View style={{ flex: 1, backgroundColor: '#F4F6F3' }}>
       <StatusBar barStyle="light-content" />
 
-      {/* 🟢 1. 상단 딥그린 헤더 바 */}
+      {/* 🟢 상단 딥그린 헤더 바 */}
       <View 
         style={{ 
           backgroundColor: '#113B29', 
@@ -61,13 +61,12 @@ export default function MapScreen() {
         </Text>
       </View>
 
-      {/* 2층: 뒤로가기 버튼 + 메인 타이틀 (가로로 묶기) */}
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <TouchableOpacity 
           onPress={() => router.back()} 
           style={{ 
-            marginRight: 6,   // 타이틀 텍스트와의 간격
-            marginLeft: -6,   // 화살표 아이콘 왼쪽 여백을 깎아서 1층 로고와 수직 라인을 맞춥니다
+            marginRight: 6,   
+            marginLeft: -6,  
           }}
         >
           <Ionicons name="chevron-back" size={26} color="white" />
@@ -79,7 +78,7 @@ export default function MapScreen() {
       </View>
     </View>
 
-      {/* 🟢 2. 지도 및 검색 영역 Container */}
+      {/* 🟢 지도 및 검색 영역 Container */}
       <View style={{ flex: 1, position: 'relative' }}>
         
         {/* 🗺️ 실제 지도 레이어 (현재는 UI 시안 대체 컴포넌트)
@@ -89,11 +88,11 @@ export default function MapScreen() {
             3. 아래 View를 <MapView> 컴포넌트로 교체하면 진짜 지도가 뜹니다.
         */}
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#E2EFE0', justifyContent: 'center', alignItems: 'center' }}>
-          {/* 시안의 지도 그래픽 분위기를 내기 위한 임시 아이콘 배치 */}
+          {/* 임시 아이콘 배치 */}
           <Feather name="map" size={64} color="#A3C9A8" style={{ opacity: 0.5 }} />
           <Text style={{ color: '#7FA885', fontSize: 12, marginTop: 8 }}>[ react-native-maps 지도 연동 영역 ]</Text>
           
-          {/* 시안에 있는 지도 위 마커들 예시 (📍 위치) */}
+          {/* 지도 위 마커들 예시 (📍 위치) */}
           <View style={{ position: 'absolute', top: '30%', left: '40%', backgroundColor: '#113B29', padding: 6, borderRadius: 20 }}>
             <Feather name="zap" size={14} color="#3CD070" />
           </View>
@@ -101,11 +100,11 @@ export default function MapScreen() {
             <Feather name="zap" size={14} color="#3CD070" />
           </View>
           
-          {/* 사용자 현재 위치 붉은색 핀 효과 */}
+          {/* 사용자 현재 위치 */}
           <View style={{ position: 'absolute', top: '65%', left: '25%', width: 20, height: 20, backgroundColor: '#FF6B6B', borderRadius: 10, borderWidth: 3, borderColor: 'white' }} />
         </View>
 
-        {/* 🔍 검색 바 (지도 위에 둥둥 떠 있는 형태) */}
+        {/* 🔍 검색 바 */}
         <View 
           style={{ 
             position: 'absolute', 
@@ -122,7 +121,7 @@ export default function MapScreen() {
             shadowOffset: { width: 0, height: 2 },
             shadowOpacity: 0.15,
             shadowRadius: 4,
-            elevation: 4, // 안드로이드 그림자
+            elevation: 4, 
           }}
         >
           <TextInput
@@ -135,7 +134,7 @@ export default function MapScreen() {
           <Feather name="search" size={20} color="#113B29" />
         </View>
 
-        {/* 🟢 3. 하단 주변 충전소 정보 리스트 바텀 시트 (탭바 가림 해결 버전) */}
+        {/* 🟢 하단 주변 충전소 정보 리스트 바텀 시트 */}
         <View 
           style={{ 
             position: 'absolute', 
@@ -147,7 +146,7 @@ export default function MapScreen() {
             borderTopRightRadius: 24, 
             paddingHorizontal: 20, 
             paddingTop: 12, 
-            paddingBottom: 90, // 👈 기존 24에서 90으로 올려서 탭바 두께만큼 바닥 공간 확보!
+            paddingBottom: 90, 
             shadowColor: '#000',
             shadowOffset: { width: 0, height: -3 },
             shadowOpacity: 0.1,
@@ -155,18 +154,17 @@ export default function MapScreen() {
             elevation: 5,
           }}
         >
-          {/* 바텀 시트 핸들 라인 */}
+          
           <View style={{ width: 40, height: 4, backgroundColor: '#113B29', borderRadius: 2, alignSelf: 'center', marginBottom: 16 }} />
 
           <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#113B29', marginBottom: 16 }}>
             주변 충전소
           </Text>
 
-          {/* 스크롤 가능한 영역 제한 및 내부 패딩 추가 */}
           <ScrollView 
             showsVerticalScrollIndicator={false} 
             style={{ maxHeight: 200 }}
-            contentContainerStyle={{ paddingBottom: 10 }} // 👈 스크롤 끝단 바운스 여백
+            contentContainerStyle={{ paddingBottom: 10 }} 
           >
             {stations.map((item, idx) => (
               <View 
