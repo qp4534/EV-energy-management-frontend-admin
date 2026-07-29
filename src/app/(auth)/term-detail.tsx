@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -60,9 +60,21 @@ export default function TermDetailScreen() {
   const [activeKey, setActiveKey] = useState<TermKey>((key as TermKey) ?? TERMS[0].key);
   const setChecked = useSignupTermStore((state) => state.setChecked);
 
+  const tabScrollRef = useRef<ScrollView>(null);
+  const tabLayouts = useRef<Partial<Record<TermKey, { x: number; width: number }>>>({});
+  const [tabRowWidth, setTabRowWidth] = useState(0);
+  const [layoutTick, setLayoutTick] = useState(0);
+
   const content = getTermContent(activeKey);
   const activeIndex = TERM_KEYS.indexOf(activeKey);
   const isLast = activeIndex === TERM_KEYS.length - 1;
+
+  useEffect(() => {
+    const layout = tabLayouts.current[activeKey];
+    if (!layout || !tabRowWidth) return;
+    const target = Math.max(0, layout.x - (tabRowWidth - layout.width) / 2);
+    tabScrollRef.current?.scrollTo({ x: target, animated: true });
+  }, [activeKey, tabRowWidth, layoutTick]);
 
   const handleAgreeContinue = () => {
     setChecked(activeKey, true);
@@ -89,15 +101,25 @@ export default function TermDetailScreen() {
         </View>
 
         <ScrollView
+          ref={tabScrollRef}
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabRow}>
+          style={styles.tabRowContainer}
+          contentContainerStyle={styles.tabRow}
+          onLayout={(e) => setTabRowWidth(e.nativeEvent.layout.width)}>
           {TERMS.map((term) => {
             const active = term.key === activeKey;
             return (
               <Pressable
                 key={term.key}
                 onPress={() => setActiveKey(term.key)}
+                onLayout={(e) => {
+                  tabLayouts.current[term.key] = {
+                    x: e.nativeEvent.layout.x,
+                    width: e.nativeEvent.layout.width,
+                  };
+                  setLayoutTick((t) => t + 1);
+                }}
                 style={[styles.tabPill, active && styles.tabPillActive]}>
                 <Text style={[styles.tabPillText, active && styles.tabPillTextActive]}>
                   {term.tabLabel}
@@ -107,7 +129,7 @@ export default function TermDetailScreen() {
           })}
         </ScrollView>
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView style={styles.scrollArea} contentContainerStyle={styles.scrollContent}>
           <View style={styles.noticeRow}>
             {content.required && (
               <View style={styles.requiredPill}>
@@ -123,6 +145,8 @@ export default function TermDetailScreen() {
               <Text style={styles.agreedAtText}>{content.agreedAtNotice}</Text>
             </View>
           </View>
+
+          {content.sections[0]?.type !== 'table' && <View style={styles.divider} />}
 
           {content.sections.map((section, index) => (
             <TermSectionView key={index} section={section} />
@@ -213,14 +237,22 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Brand.text,
   },
+  tabRowContainer: {
+    flexGrow: 0,
+    flexShrink: 0,
+    height: 56,
+  },
   tabRow: {
+    alignItems: 'center',
     paddingHorizontal: 20,
     gap: 8,
+    paddingTop: 8,
     paddingBottom: 12,
   },
   tabPill: {
+    height: 36,
+    justifyContent: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 9,
     borderRadius: 999,
     backgroundColor: '#F1F1EA',
   },
@@ -234,6 +266,9 @@ const styles = StyleSheet.create({
   },
   tabPillTextActive: {
     color: '#FFFFFF',
+  },
+  scrollArea: {
+    flex: 1,
   },
   scrollContent: {
     paddingHorizontal: 20,
@@ -268,6 +303,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: Brand.textMuted,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Brand.border,
   },
   articleBlock: {
     gap: 8,
