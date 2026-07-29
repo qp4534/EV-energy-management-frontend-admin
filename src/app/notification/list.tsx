@@ -1,9 +1,9 @@
+import { useVehicleStore } from '@/store/vehicle-store';
+import { NotiType } from '@/types/notification';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-
-type NotiType = '긴급' | '경고' | '주의' | '정상';
 
 interface NotiItem {
   id: string;
@@ -16,8 +16,10 @@ interface NotiItem {
 
 export default function NotificationListScreen() {
   const router = useRouter();
+  const { vehicle } = useVehicleStore();
   const [filter, setFilter] = useState<string>('ALL');
 
+  // 더미 알림 데이터 (나중에 백엔드 API 연동 시, API 응답 데이터로 대체 예정)
   const listData: NotiItem[] = [
     { id: '1', type: '경고', title: '배터리 이상 징후 감지', desc: '배터리 정밀 진단 권장', time: '07:25', hasReport: false },
     { id: '2', type: '긴급', title: '배터리 온도 위험 감지', desc: '충전 중단 권장, 배터리 화재 위험성 높음', time: '어제', hasReport: true },
@@ -38,7 +40,6 @@ export default function NotificationListScreen() {
   const filtered = filter === 'ALL' ? listData : listData.filter(d => d.type === filter);
 
   return (
-    // 전체 배경 (보고서 상세 화면과 일치하는 미색 테마)
     <View style={{ flex: 1, backgroundColor: '#FAF9F5', paddingTop: 56, paddingHorizontal: 20 }}>
       
       {/* 1. 헤더 영역 */}
@@ -102,7 +103,6 @@ export default function NotificationListScreen() {
                 marginBottom: 12,
                 borderWidth: 1,
                 borderColor: '#EDF2EC',
-                // 부드러운 그림자 효과
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 1 },
                 shadowOpacity: 0.04,
