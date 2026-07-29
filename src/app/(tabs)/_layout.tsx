@@ -1,21 +1,22 @@
-// import AppTabs from '@/components/app-tabs';
-
-// export default function TabsLayout() {
-//   return <AppTabs />;
-// }
-
-import { Tabs } from 'expo-router';
-import { View, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Tabs, useSegments } from 'expo-router';
+import { Platform, StyleSheet, View } from 'react-native';
 // npx expo install @expo/vector-icons 설치
 
 export default function TabsLayout() {
+  const segments = useSegments();
+
+  // 현재 활성화된 화면이 'guide-chat' 인지 확인
+  // segments 배열의 마지막 요소가 'guide-chat'인지 체크
+  const isGuideChatActive = segments[segments.length - 1] === 'guide-chat';
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: '#113B29', // 시안의 메인 딥그린
+        // guide-chat 화면일 때만 tabBarStyle을 숨김({ display: 'none' }) 처리
+        tabBarStyle: isGuideChatActive ? { display: 'none' } : styles.tabBar,
+        tabBarActiveTintColor: '#113B29', 
         tabBarInactiveTintColor: '#888888',
         tabBarShowLabel: true,
         tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },
@@ -40,7 +41,7 @@ export default function TabsLayout() {
         }}
       />
       
-      {/* 중앙 홈 버튼 (플로팅 스타일 구현) */}
+      {/* 중앙 홈 버튼 */}
       <Tabs.Screen
         name="home"
         options={{

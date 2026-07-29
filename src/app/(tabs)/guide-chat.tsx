@@ -1,3 +1,5 @@
+import { useAuthStore } from '@/store/auth-store';
+import { useVehicleStore } from '@/store/vehicle-store';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router'; // 🔗 router 사용을 위한 import 추가
 import { useState } from 'react';
@@ -10,12 +12,23 @@ interface Message {
 }
 
 export default function GuideChatScreen() {
-  const router = useRouter(); // 🔗 router 객체 선언
+  const router = useRouter(); 
+  
+  // 👤 전역 상태 저장소 데이터 매핑 
+  const { user } = useAuthStore();
+  const { vehicle } = useVehicleStore(); 
+  
+  // 유저 정보 및 등록된 차량명이 없을 경우 기본값(아이오닉5) 세팅
+  const userName = user?.name || '사용자';
+  const vehicleName = vehicle?.model || '아이오닉5'; 
+
+  // 초기 메세지 구성
   const [messages, setMessages] = useState<Message[]>([
     { id: '1', sender: 'ai', text: '안녕하세요! 미정이 AI 충전 가이드 챗봇입니다. 무엇이 궁금하신가요?' }
   ]);
   const [input, setInput] = useState<string>('');
 
+  // AI 챗봇 API 연동 시뮬레이션 함수
   const fetchAiChatbotResponse = async (userText: string) => {
     try {
       // API 응답을 시뮬레이션하기 위해 약간의 딜레이 후 AI 메시지 추가
@@ -48,10 +61,11 @@ export default function GuideChatScreen() {
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 24}
       style={{ flex: 1, backgroundColor: '#FAF9F5' }}
     >
       
-      {/* 🟢 1. 상단 딥그린 헤더 바 (보내주신 구조와 100% 완벽 동기화) */}
+      {/* 🟢 1. 상단 딥그린 헤더 바 */}
       <View 
         style={{ 
           backgroundColor: '#113B29', 
@@ -96,6 +110,7 @@ export default function GuideChatScreen() {
       <ScrollView 
         style={{ flex: 1, paddingHorizontal: 16 }}
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 16 }}
+        showsVerticalScrollIndicator={false}
       >
         {messages.map(m => (
           <View key={m.id} style={{ flexDirection: 'row', marginBottom: 16, justifyContent: m.sender === 'user' ? 'flex-end' : 'flex-start' }}>
@@ -147,7 +162,9 @@ export default function GuideChatScreen() {
         paddingHorizontal: 16, 
         paddingTop: 8, 
         paddingBottom: Platform.OS === 'ios' ? 24 : 16, 
-        backgroundColor: 'transparent'
+        backgroundColor: '#FAF9F5', // 레이어 겹침 방지
+        borderTopWidth: 1,
+        borderColor: '#E5E7EB',
       }}>
         {/* 인풋창 */}
         <View style={{ 
@@ -167,11 +184,18 @@ export default function GuideChatScreen() {
             onChangeText={setInput} 
             placeholder="충전 관련 궁금한 점을 물어보세요" 
             placeholderTextColor="#A0A0A0"
-            style={{ flex: 1, fontSize: 14, color: '#1F2937', paddingVertical: 0 }} 
+            style={{ 
+              flex: 1, 
+              height: '100%', 
+              fontSize: 14, 
+              color: '#1F2937', 
+              paddingVertical: 0,
+              margin: 0,
+            }} 
           />
         </View>
         
-        {/* 둥근 초록색 전송 버튼 */}
+        {/* 전송 버튼 */}
         <TouchableOpacity 
           onPress={() => handleSendMessage(input)} 
           style={{ 
