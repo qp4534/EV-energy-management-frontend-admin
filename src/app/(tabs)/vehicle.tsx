@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -8,32 +9,53 @@ import { VehicleRegisterForm } from '@/components/vehicle/vehicle-register-form'
 import { Brand } from '@/constants/theme';
 import { useVehicle } from '@/hooks/use-vehicle';
 import { useVehicleBatteryStatus } from '@/hooks/use-vehicle-battery-status';
+import { VehicleRegisterRequest } from '@/types/vehicle';
 
 export default function VehicleScreen() {
-  const { vehicle, isRegistered, registerVehicle, clearVehicle } = useVehicle();
+  const { vehicle, vehicles, isRegistered, registerVehicle, setPrimaryVehicle } = useVehicle();
   const { status, rul } = useVehicleBatteryStatus(vehicle?.id);
+  const [isAdding, setIsAdding] = useState(false);
+
+  const showForm = !isRegistered || isAdding;
+
+  const handleSubmit = async (request: VehicleRegisterRequest) => {
+    await registerVehicle(request);
+    setIsAdding(false);
+  };
+
+  const handleBack = () => {
+    if (isAdding) {
+      setIsAdding(false);
+      return;
+    }
+    router.canGoBack() ? router.back() : router.push('/(tabs)/home');
+  };
 
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <Header
-          title={isRegistered ? '차량 관리' : '차량 등록'}
+          title={showForm ? '차량 등록' : '차량 관리'}
           showBack
           align="left"
           titleColor={Brand.primaryDark}
           backgroundColor={Brand.background}
-          onBackPress={() => (router.canGoBack() ? router.back() : router.push('/(tabs)/home'))}
+          onBackPress={handleBack}
         />
         <View style={styles.content}>
-          {isRegistered && vehicle ? (
-            <VehicleManagePanel
-              vehicle={vehicle}
-              status={status}
-              rul={rul}
-              onRegisterNew={clearVehicle}
-            />
+          {showForm ? (
+            <VehicleRegisterForm onSubmit={handleSubmit} />
           ) : (
-            <VehicleRegisterForm onSubmit={registerVehicle} />
+            vehicle && (
+              <VehicleManagePanel
+                vehicle={vehicle}
+                vehicles={vehicles}
+                status={status}
+                rul={rul}
+                onRegisterNew={() => setIsAdding(true)}
+                onSelectPrimary={setPrimaryVehicle}
+              />
+            )
           )}
         </View>
       </SafeAreaView>

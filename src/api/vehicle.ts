@@ -7,7 +7,7 @@ export async function getMyVehicle(): Promise<Vehicle | null> {
 
 export async function registerVehicle(request: VehicleRegisterRequest): Promise<Vehicle> {
   return mockDelay({
-    id: 'v1',
+    id: `v-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     nickname: request.nickname,
     model: request.model,
     plateNumber: request.plateNumber,

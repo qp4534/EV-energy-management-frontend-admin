@@ -3,12 +3,20 @@ import { useVehicleStore } from '@/store/vehicle-store';
 import { VehicleRegisterRequest } from '@/types/vehicle';
 
 export function useVehicle() {
-  const { vehicle, isRegistered, setVehicle, clearVehicle } = useVehicleStore();
+  const { vehicle, vehicles, isRegistered, addVehicle, removeVehicle, setPrimaryVehicle } =
+    useVehicleStore();
 
   const registerVehicle = async (request: VehicleRegisterRequest) => {
     const res = await vehicleApi.registerVehicle(request);
-    setVehicle(res);
+    addVehicle(res);
   };
 
-  return { vehicle, isRegistered, registerVehicle, clearVehicle };
+  return {
+    vehicle,
+    vehicles,
+    isRegistered,
+    registerVehicle,
+    removeVehicle,
+    setPrimaryVehicle,
+  };
 }
