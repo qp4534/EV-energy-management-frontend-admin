@@ -1,5 +1,5 @@
+import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -16,11 +16,7 @@ export default function SignupTermScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.topBar}>
           <Pressable onPress={() => router.back()} hitSlop={12} style={styles.backButton}>
-            <SymbolView
-              name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
-              size={20}
-              tintColor={Brand.textMuted}
-            />
+            <Feather name="chevron-left" size={24} color={Brand.textMuted} />
           </Pressable>
         </View>
 

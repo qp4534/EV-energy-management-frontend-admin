@@ -1,3 +1,4 @@
+import { Feather } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useEffect, useRef, useState } from 'react';
@@ -91,11 +92,7 @@ export default function TermDetailScreen() {
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={12} style={styles.backButton}>
-            <SymbolView
-              name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
-              size={20}
-              tintColor={Brand.text}
-            />
+            <Feather name="chevron-left" size={24} color={Brand.text} />
           </Pressable>
           <Text style={styles.headerTitle}>이용약관 및 정책</Text>
         </View>
