@@ -1,7 +1,7 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 
 // 사용자, 차량 정보 스토어 임포트
 import { useAuthStore } from '@/store/auth-store';
@@ -10,7 +10,7 @@ import { useVehicleStore } from '@/store/vehicle-store';
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { vehicle, isRegistered } = useVehicleStore();
+  const { vehicle, vehicles, isRegistered, setPrimaryVehicle } = useVehicleStore();
 
   // 데이터 유실 혹은 초기 상태를 대비한 기본값 
   const currentUserName = user?.name || '사용자';
@@ -18,6 +18,7 @@ export default function HomeScreen() {
   const currentPlateNumber = vehicle?.plateNumber || '차량 번호 미등록';
 
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
+  const [showVehiclePicker, setShowVehiclePicker] = useState<boolean>(false);
 
   // 🤖 [AI 연동 영역 데이터]
   const [aiReportSummary] = useState<string>("추후 AI가 요약해준 보고서 요약 내용이 실시간으로 연동되어 표시될 영역입니다.");
@@ -45,18 +46,10 @@ export default function HomeScreen() {
     }
   }, [isRegistered, vehicle]);
 
-  // 🚗 차량 관리/변경 패널 이동 (오류 원인 제거 및 변경)
+  // 🚗 등록된 차량 중 하나를 대표 차량으로 선택하는 창을 엽니다.
+  // (Alert.alert는 웹 빌드의 react-native-web에서 아무 동작도 하지 않는 no-op이라 커스텀 모달로 구현)
   const handleSwitchVehicle = () => {
-    // 💡 현재 vehicle-store가 단일 차량 객체 체계이므로, 
-    // 다중 차량 변경 기능은 복수의 리스트를 관리하는 vehicle 탭 화면으로 연결되도록 안내합니다.
-    Alert.alert(
-      "차량 변경 및 관리", 
-      "다중 차량 추가 등록 및 대표 차량 변경은 차량 등록/관리 탭에서 가능합니다. 이동하시겠습니까?", 
-      [
-        { text: "취소", style: "cancel" },
-        { text: "이동", onPress: () => router.push('/(tabs)/vehicle') }
-      ]
-    );
+    setShowVehiclePicker(true);
   };
 
   return (
@@ -289,6 +282,84 @@ export default function HomeScreen() {
               style={{ width: '100%', backgroundColor: '#DCECD8', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
             >
               <Text style={{ color: '#113B29', fontWeight: 'bold', fontSize: 14 }}>자세히 보기</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* ================= 🚗 [MODAL] 차량 선택 팝업 ================= */}
+      {showVehiclePicker && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20, zIndex: 50 }}>
+          <View style={{ backgroundColor: '#ffffff', width: '100%', borderRadius: 16, padding: 20, position: 'relative' }}>
+
+            <TouchableOpacity
+              onPress={() => setShowVehiclePicker(false)}
+              style={{ position: 'absolute', right: 16, top: 16, padding: 10, zIndex: 9999 }}
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
+            >
+              <Feather name="x" size={20} color="#AAAAAA" />
+            </TouchableOpacity>
+
+            <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#113B29', marginBottom: 14 }}>
+              차량 선택
+            </Text>
+
+            {vehicles.map((v) => {
+              const isCurrent = v.id === vehicle?.id;
+              return (
+                <TouchableOpacity
+                  key={v.id}
+                  onPress={() => {
+                    setPrimaryVehicle(v.id);
+                    setShowVehiclePicker(false);
+                  }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    backgroundColor: isCurrent ? '#EDF4E6' : '#F7F9F6',
+                    borderWidth: 1,
+                    borderColor: isCurrent ? '#B2D8B2' : '#EAEFEA',
+                    borderRadius: 12,
+                    paddingVertical: 12,
+                    paddingHorizontal: 16,
+                    marginBottom: 10,
+                  }}
+                >
+                  <View>
+                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#222222' }}>
+                      {v.nickname || v.model}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: '#999999', marginTop: 2 }}>
+                      {v.model} · {v.plateNumber}
+                    </Text>
+                  </View>
+                  {isCurrent && <Feather name="check" size={18} color="#113B29" />}
+                </TouchableOpacity>
+              );
+            })}
+
+            <TouchableOpacity
+              onPress={() => {
+                setShowVehiclePicker(false);
+                router.push('/(tabs)/vehicle');
+              }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 1,
+                borderColor: '#B2D8B2',
+                borderStyle: 'dashed',
+                borderRadius: 12,
+                paddingVertical: 12,
+                marginTop: 4,
+              }}
+            >
+              <Feather name="plus" size={16} color="#113B29" />
+              <Text style={{ color: '#113B29', fontWeight: 'bold', fontSize: 13, marginLeft: 6 }}>
+                새 차량 등록하기
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
