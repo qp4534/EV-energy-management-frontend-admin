@@ -1,5 +1,5 @@
+import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
@@ -32,11 +32,7 @@ export function Header({
       <ThemedView style={[styles.container, backgroundColor ? { backgroundColor } : null]}>
         {showBack && (
           <Pressable onPress={handleBack} hitSlop={Spacing.two}>
-            <SymbolView
-              name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
-              size={20}
-              tintColor={titleColor ?? theme.text}
-            />
+            <Feather name="chevron-left" size={24} color={titleColor ?? theme.text} />
           </Pressable>
         )}
         <ThemedText
@@ -54,11 +50,7 @@ export function Header({
       <View style={styles.side}>
         {showBack && (
           <Pressable onPress={handleBack} hitSlop={Spacing.two}>
-            <SymbolView
-              name={{ ios: 'chevron.left', android: 'arrow_back', web: 'arrow_back' }}
-              size={20}
-              tintColor={theme.text}
-            />
+            <Feather name="chevron-left" size={24} color={theme.text} />
           </Pressable>
         )}
       </View>

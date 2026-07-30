@@ -1,3 +1,4 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { StatusBadge } from '@/components/common/status-badge';
@@ -29,7 +30,10 @@ export function VehicleManagePanel({
       <Text style={styles.countLabel}>등록 차량 {vehicles.length}대</Text>
 
       <View style={styles.card}>
-        <Text style={styles.cardLabel}>대표 차량</Text>
+        <View style={styles.cardLabelRow}>
+          <MaterialCommunityIcons name="crown" size={13} color="#F5B400" />
+          <Text style={styles.cardLabel}>대표 차량</Text>
+        </View>
         <Text style={styles.vehicleName}>{vehicle.nickname}</Text>
         <View style={styles.divider} />
         <View style={styles.metricsRow}>
@@ -83,6 +87,11 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.card,
     padding: 16,
     gap: 8,
+  },
+  cardLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   cardLabel: {
     fontSize: 12,
