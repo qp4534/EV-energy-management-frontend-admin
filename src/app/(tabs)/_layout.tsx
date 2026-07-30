@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useSegments } from 'expo-router';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 // npx expo install @expo/vector-icons 설치
 
 export default function TabsLayout() {
@@ -31,6 +31,7 @@ export default function TabsLayout() {
           ),
         }}
       />
+      
       <Tabs.Screen
         name="battery-passport"
         options={{
@@ -45,7 +46,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: '', // 홈은 라벨을 비워둠
+          title: '', 
           tabBarIcon: ({ focused }) => (
             <View style={[styles.floatingHomeButton, focused && styles.activeHome]}>
               <Ionicons name="home" size={28} color={focused ? '#ffffff' : '#113B29'} />
@@ -54,7 +55,7 @@ export default function TabsLayout() {
         }}
       />
 
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="guide-chat"
         options={{
           title: 'AI 충전 가이드',
@@ -62,7 +63,28 @@ export default function TabsLayout() {
             <Ionicons name={focused ? "chatbubble-ellipses" : "chatbubble-ellipses-outline"} size={24} color={color} />
           ),
         }}
+      /> */}
+
+      <Tabs.Screen
+        name="guide-chat"
+        options={{
+          tabBarLabel: ({ color }) => (
+            <Text style={{ 
+              color, 
+              fontSize: 11, 
+              fontWeight: '500', 
+              textAlign: 'center',
+              lineHeight: 14,
+            }}>
+              {"AI 충전\n가이드"}
+            </Text>
+          ),
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "chatbubble-ellipses" : "chatbubble-ellipses-outline"} size={24} color={color} />
+          ),
+        }}
       />
+
       <Tabs.Screen
         name="mypage"
         options={{
@@ -83,7 +105,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 85,
-    backgroundColor: '#EDF2EC', // 시안 하단 탭바의 연녹색/아이보리 배경
+    backgroundColor: '#EDF2EC', 
     borderTopWidth: 0,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
@@ -103,9 +125,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
-    top: -25, // 위로 툭 튀어나오는 플로팅 효과
+    top: -25, 
     borderWidth: 4,
-    borderColor: '#EDF2EC', // 탭바 배경색과 맞춰서 자연스럽게
+    borderColor: '#EDF2EC', 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
@@ -113,6 +135,6 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   activeHome: {
-    backgroundColor: '#113B29', // 활성화 시 딥그린으로 채워짐
+    backgroundColor: '#113B29', 
   }
 });

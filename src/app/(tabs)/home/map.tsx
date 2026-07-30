@@ -1,7 +1,7 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 // 🔌 충전소 데이터 규격 (추후 API 연동용)
 interface ChargingStation {
@@ -16,6 +16,7 @@ interface ChargingStation {
 export default function MapScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState<boolean>(true); // 바텀시트 열림/닫힘 상태
 
   // 📍 더미 데이터 
   // 추후 실제 구현 시: expo-location으로 사용자 위/경도를 딴 후 백엔드 API에서 가까운 목록을 fetch 받아옵니다.
@@ -38,8 +39,17 @@ export default function MapScreen() {
     }
   ]);
 
+  // 🔍 검색 실행 함수
+  const handleSearch = () => {
+    if (!searchQuery.trim()) {
+      Alert.alert('알림', '검색어를 입력해주세요.');
+      return;
+    }
+    Alert.alert('검색 시뮬레이션', `'${searchQuery}' 검색 결과 화면으로 이동하거나 데이터를 필터링합니다.`);
+  };
+
   return (
-    <View style={{ flex: 1, backgroundColor: '#F4F6F3' }}>
+    <View style={{ flex: 1, backgroundColor: '#E2EFE0' }}>
       <StatusBar barStyle="light-content" />
 
       {/* 🟢 상단 딥그린 헤더 바 */}
@@ -52,6 +62,11 @@ export default function MapScreen() {
           borderBottomLeftRadius: 24,
           borderBottomRightRadius: 24,
           zIndex: 10,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.15,
+          shadowRadius: 6,
+          elevation: 5
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
@@ -129,16 +144,19 @@ export default function MapScreen() {
             placeholderTextColor="#557A59"
             value={searchQuery}
             onChangeText={setSearchQuery}
+            onSubmitEditing={handleSearch}
             style={{ flex: 1, fontSize: 16, color: '#113B29', fontWeight: 'bold' }}
           />
-          <Feather name="search" size={20} color="#113B29" />
+          <TouchableOpacity onPress={handleSearch} style={{ padding: 4 }}>
+            <Feather name="search" size={20} color="#113B29" />
+          </TouchableOpacity>
         </View>
 
         {/* 🟢 하단 주변 충전소 정보 리스트 바텀 시트 */}
         <View 
           style={{ 
             position: 'absolute', 
-            bottom: 0, 
+            bottom: isBottomSheetOpen ? 0 : 70,
             left: 0, 
             right: 0, 
             backgroundColor: '#ffffff', 
@@ -146,7 +164,7 @@ export default function MapScreen() {
             borderTopRightRadius: 24, 
             paddingHorizontal: 20, 
             paddingTop: 12, 
-            paddingBottom: 90, 
+            paddingBottom: isBottomSheetOpen ? 90 : 20,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: -3 },
             shadowOpacity: 0.1,
@@ -154,31 +172,48 @@ export default function MapScreen() {
             elevation: 5,
           }}
         >
-          
-          <View style={{ width: 40, height: 4, backgroundColor: '#113B29', borderRadius: 2, alignSelf: 'center', marginBottom: 16 }} />
-
-          <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#113B29', marginBottom: 16 }}>
-            주변 충전소
-          </Text>
-
-          <ScrollView 
-            showsVerticalScrollIndicator={false} 
-            style={{ maxHeight: 200 }}
-            contentContainerStyle={{ paddingBottom: 10 }} 
+          {/* 토글 핸들러 (누르면 접히고 펴짐) */}
+          <TouchableOpacity 
+            activeOpacity={0.8}
+            onPress={() => setIsBottomSheetOpen(!isBottomSheetOpen)}
+            style={{ alignItems: 'center', width: '100%', paddingBottom: 10 }}
           >
-            {stations.map((item, idx) => (
-              <View 
-                key={item.id} 
-                style={{ 
-                  borderBottomWidth: idx === stations.length - 1 ? 0 : 1, 
-                  borderBottomColor: '#EEF2EE', 
-                  paddingBottom: 14, 
-                  marginBottom: 14,
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}
-              >
+            <View style={{ width: 40, height: 4, backgroundColor: '#113B29', borderRadius: 2, marginBottom: 10 }} />
+            
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', width: '100%', alignItems: 'center', paddingHorizontal: 4 }}>
+              <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#113B29', flex: 1 }}>
+                주변 충전소
+              </Text>
+              {/* 열리고 닫힘을 알려주는 화살표 아이콘 */}
+              <Feather 
+                name={isBottomSheetOpen ? "chevron-down" : "chevron-up"} 
+                size={20} 
+                color="#113B29" 
+              />
+            </View>
+          </TouchableOpacity>
+
+          {/* 리스트 본문 (열려있을 때만 보임) */}
+          {isBottomSheetOpen && (
+            <ScrollView 
+              showsVerticalScrollIndicator={false} 
+              style={{ maxHeight: 200 }}
+              contentContainerStyle={{ paddingBottom: 10 }} 
+            >
+              {stations.map((item, idx) => (
+                <View 
+                  key={item.id} 
+                  style={{ 
+                    borderBottomWidth: idx === stations.length - 1 ? 0 : 1, 
+                    borderBottomColor: '#EEF2EE', 
+                    paddingBottom: 14, 
+                    marginBottom: 14,
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}
+                >
+
                 <View style={{ flex: 1, marginRight: 8 }}>
                   <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#4A6B53', marginBottom: 6 }}>
                     {item.name}
@@ -210,6 +245,7 @@ export default function MapScreen() {
               </View>
             ))}
           </ScrollView>
+          )}
         </View>
       </View>
     </View>
