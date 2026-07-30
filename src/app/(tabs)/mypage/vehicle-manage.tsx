@@ -9,7 +9,7 @@ import { useVehicle } from '@/hooks/use-vehicle';
 import { useVehicleBatteryStatus } from '@/hooks/use-vehicle-battery-status';
 
 export default function VehicleManageScreen() {
-  const { vehicle, isRegistered, clearVehicle } = useVehicle();
+  const { vehicle, vehicles, isRegistered, setPrimaryVehicle } = useVehicle();
   const { status, rul } = useVehicleBatteryStatus(vehicle?.id);
 
   return (
@@ -26,9 +26,11 @@ export default function VehicleManageScreen() {
           {isRegistered && vehicle ? (
             <VehicleManagePanel
               vehicle={vehicle}
+              vehicles={vehicles}
               status={status}
               rul={rul}
-              onRegisterNew={clearVehicle}
+              onRegisterNew={() => router.push('/vehicle')}
+              onSelectPrimary={setPrimaryVehicle}
             />
           ) : (
             <View style={styles.emptyState}>
