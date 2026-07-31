@@ -57,7 +57,8 @@ function BulletIcon({ icon }: { icon: TermIcon }) {
 }
 
 export default function TermDetailScreen() {
-  const { key } = useLocalSearchParams<{ key: string }>();
+  const { key, mode } = useLocalSearchParams<{ key: string; mode?: string }>();
+  const isViewOnly = mode === 'view';
   const [activeKey, setActiveKey] = useState<TermKey>((key as TermKey) ?? TERMS[0].key);
   const setChecked = useSignupTermStore((state) => state.setChecked);
 
@@ -151,9 +152,15 @@ export default function TermDetailScreen() {
         </ScrollView>
 
         <View style={styles.footer}>
-          <Pressable style={styles.agreeButton} onPress={handleAgreeContinue}>
-            <Text style={styles.agreeButtonText}>{isLast ? '동의하고 계속하기' : '동의하고 다음 약관 보기'}</Text>
-          </Pressable>
+          {isViewOnly ? (
+            <Pressable style={styles.agreeButton} onPress={() => router.back()}>
+              <Text style={styles.agreeButtonText}>확인</Text>
+            </Pressable>
+          ) : (
+            <Pressable style={styles.agreeButton} onPress={handleAgreeContinue}>
+              <Text style={styles.agreeButtonText}>{isLast ? '동의하고 계속하기' : '동의하고 다음 약관 보기'}</Text>
+            </Pressable>
+          )}
         </View>
       </SafeAreaView>
     </View>
