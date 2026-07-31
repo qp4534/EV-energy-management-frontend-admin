@@ -1,5 +1,6 @@
 import { EmergencyModal } from '@/components/modal/EmergencyModal';
 import { ReportModal } from '@/components/modal/ReportModal';
+import { VehiclePickerModal } from '@/components/modal/VehiclePickerModal';
 import { useAuthStore } from '@/store/auth-store';
 import { useVehicleStore } from '@/store/vehicle-store';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -16,7 +17,8 @@ export default function HomeScreen() {
   const currentUserName = user?.name || '사용자';
   const currentVehicleName = vehicle?.model || '등록된 차량 없음';
   const currentPlateNumber = vehicle?.plateNumber || '차량 번호 미등록';
-  
+  const currentBatteryTemp = (vehicle as any)?.temperatureC ?? 95;
+
   // 🚨 팝업 상태 관리 
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
   const [showVehiclePicker, setShowVehiclePicker] = useState<boolean>(false);
@@ -33,7 +35,6 @@ export default function HomeScreen() {
   // 배터리 잔존 수명(Soh)이 스토어에 있다면 해당 값을 반영하고, 없으면 기본값(3.3)을 보여줍니다.
   const batterySohProgress = vehicle?.batterySoh ? vehicle.batterySoh / 100 : 0.35;
   const estimatedLife = (batterySohProgress * 10).toFixed(1); // SOH 기반 잔존 수명 시뮬레이션
-  const currentBatteryTemp = 95; // ◀ 추후 battery.ts 스펙의 temperatureC 연동
 
   // 📍 [위치 기반 데이터] 가까운 충전소 2개 기본셋팅
   const [nearbyStations, setNearbyStations] = useState([
@@ -269,84 +270,21 @@ export default function HomeScreen() {
         summaryText={aiReportSummary}
     />
 
-      
-      {/* ================= 🚗 [MODAL] 차량 선택 팝업 ================= */}
-      {showVehiclePicker && (
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20, zIndex: 50 }}>
-          <View style={{ backgroundColor: '#ffffff', width: '100%', borderRadius: 16, padding: 20, position: 'relative' }}>
-
-            <TouchableOpacity
-              onPress={() => setShowVehiclePicker(false)}
-              style={{ position: 'absolute', right: 16, top: 16, padding: 10, zIndex: 9999 }}
-              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-            >
-              <Feather name="x" size={20} color="#AAAAAA" />
-            </TouchableOpacity>
-
-            <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#113B29', marginBottom: 14 }}>
-              차량 선택
-            </Text>
-
-            {vehicles.map((v) => {
-              const isCurrent = v.id === vehicle?.id;
-              return (
-                <TouchableOpacity
-                  key={v.id}
-                  onPress={() => {
-                    setPrimaryVehicle(v.id);
-                    setShowVehiclePicker(false);
-                  }}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    backgroundColor: isCurrent ? '#EDF4E6' : '#F7F9F6',
-                    borderWidth: 1,
-                    borderColor: isCurrent ? '#B2D8B2' : '#EAEFEA',
-                    borderRadius: 12,
-                    paddingVertical: 12,
-                    paddingHorizontal: 16,
-                    marginBottom: 10,
-                  }}
-                >
-                  <View>
-                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#222222' }}>
-                      {v.nickname || v.model}
-                    </Text>
-                    <Text style={{ fontSize: 12, color: '#999999', marginTop: 2 }}>
-                      {v.model} · {v.plateNumber}
-                    </Text>
-                  </View>
-                  {isCurrent && <Feather name="check" size={18} color="#113B29" />}
-                </TouchableOpacity>
-              );
-            })}
-
-            <TouchableOpacity
-              onPress={() => {
-                setShowVehiclePicker(false);
-                router.push('/(tabs)/vehicle');
-              }}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderWidth: 1,
-                borderColor: '#B2D8B2',
-                borderStyle: 'dashed',
-                borderRadius: 12,
-                paddingVertical: 12,
-                marginTop: 4,
-              }}
-            >
-              <Feather name="plus" size={16} color="#113B29" />
-              <Text style={{ color: '#113B29', fontWeight: 'bold', fontSize: 13, marginLeft: 6 }}>
-                새 차량 등록하기
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
+    <VehiclePickerModal
+      visible={showVehiclePicker}
+      onClose={() => setShowVehiclePicker(false)}
+      vehicles={vehicles}
+      currentVehicleId={vehicle?.id}
+      onSelectVehicle={(id) => {
+        setPrimaryVehicle(id);
+        setShowVehiclePicker(false);
+      }}
+      onRegisterNewVehicle={() => {
+        setShowVehiclePicker(false);
+        router.push('/(tabs)/vehicle');
+      }}
+    />
+    
     </View>
   );
 }
