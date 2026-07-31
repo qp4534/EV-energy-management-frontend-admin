@@ -1,27 +1,8 @@
-import * as SecureStore from 'expo-secure-store';
-import { Platform } from 'react-native';
 import { create } from 'zustand';
-import { createJSONStorage, persist, StateStorage } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { persistStorage } from '@/utils/persist-storage';
 import { User } from '@/types/auth';
-
-const secureStorage: StateStorage = {
-  getItem: async (name) => (await SecureStore.getItemAsync(name)) ?? null,
-  setItem: (name, value) => SecureStore.setItemAsync(name, value),
-  removeItem: (name) => SecureStore.deleteItemAsync(name),
-};
-
-const webStorage: StateStorage = {
-  getItem: (name) => Promise.resolve(window.localStorage.getItem(name)),
-  setItem: (name, value) => {
-    window.localStorage.setItem(name, value);
-    return Promise.resolve();
-  },
-  removeItem: (name) => {
-    window.localStorage.removeItem(name);
-    return Promise.resolve();
-  },
-};
 
 type AuthState = {
   token: string | null;
@@ -46,7 +27,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      storage: createJSONStorage(() => (Platform.OS === 'web' ? webStorage : secureStorage)),
+      storage: createJSONStorage(() => persistStorage),
       partialize: (state) => ({
         token: state.token,
         user: state.user,

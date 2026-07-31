@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 
 import * as authApi from '@/api/auth';
+import { useLoginAttemptStore } from '@/store/login-attempt-store';
 
 export function useResetPassword() {
   const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ export function useResetPassword() {
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const resetLoginAttempts = useLoginAttemptStore((state) => state.resetAttempts);
 
   const requestCode = async () => {
     await authApi.requestVerificationCode(email);
@@ -31,6 +33,7 @@ export function useResetPassword() {
     setSubmitting(true);
     try {
       await authApi.resetPassword(email, password);
+      resetLoginAttempts(email);
       setDone(true);
     } finally {
       setSubmitting(false);

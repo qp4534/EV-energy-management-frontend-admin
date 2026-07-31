@@ -1,7 +1,19 @@
 import { mockDelay } from '@/api/client';
 import { FindIdResult, LoginRequest, LoginResponse, SignupInfoRequest, User } from '@/types/auth';
 
+// 백엔드 연동 전까지 로그인 성공을 재현하기 위한 목업 테스트 계정.
+const MOCK_TEST_EMAIL = 'test@test.com';
+const MOCK_TEST_PASSWORD = '1234';
+
 export async function login(request: LoginRequest): Promise<LoginResponse> {
+  if (
+    request.email.trim().toLowerCase() !== MOCK_TEST_EMAIL ||
+    request.password !== MOCK_TEST_PASSWORD
+  ) {
+    await mockDelay(null);
+    throw new Error('INVALID_CREDENTIALS');
+  }
+
   return mockDelay({
     token: 'mock-token',
     user: { id: 'u1', name: '홍길동', email: request.email },
