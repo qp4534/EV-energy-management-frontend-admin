@@ -74,6 +74,16 @@ export default function LoginScreen() {
           <View style={styles.bottomSpacer} />
         </ScrollView>
 
+        <View style={styles.footerLinkRow}>
+          <Pressable
+            onPress={() => router.push({ pathname: '/term-detail', params: { key: 'service', mode: 'view' } })}>
+            <Text style={styles.footerLinkText}>이용약관</Text>
+          </Pressable>
+          <Text style={styles.footerLinkDivider}>|</Text>
+          <Pressable onPress={() => router.push('/privacy-policy')}>
+            <Text style={styles.footerLinkText}>개인정보 처리방침</Text>
+          </Pressable>
+        </View>
         <Text style={styles.footer}>@EV energy resource management platform</Text>
       </SafeAreaView>
     </View>
@@ -175,6 +185,22 @@ const styles = StyleSheet.create({
     color: Brand.footerText,
     textAlign: 'center',
     paddingHorizontal: 24,
-    paddingVertical: 16,
+    paddingBottom: 16,
+  },
+  footerLinkRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    paddingTop: 18,
+  },
+  footerLinkText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Brand.footerText,
+  },
+  footerLinkDivider: {
+    fontSize: 12,
+    color: Brand.border,
   },
 });
