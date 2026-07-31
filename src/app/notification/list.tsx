@@ -1,3 +1,5 @@
+import { EmergencyModal } from '@/components/modal/EmergencyModal';
+import { ReportModal } from '@/components/modal/ReportModal';
 import { useVehicleStore } from '@/store/vehicle-store';
 import { NotiType } from '@/types/notification';
 import { Feather } from '@expo/vector-icons';
@@ -19,6 +21,17 @@ export default function NotificationListScreen() {
   const { vehicle } = useVehicleStore();
   const [filter, setFilter] = useState<string>('ALL');
 
+  // 🚨 긴급 팝업 제어를 위한 상태 추가
+  const [isEmergencyModalVisible, setIsEmergencyModalVisible] = useState<boolean>(false);
+  const [selectedEmergencyItem, setSelectedEmergencyItem] = useState<NotiItem | null>(null);
+  
+  // 📄 경고 단계 보고서 도착 알림 팝업 제어 상태
+  const [isReportModalVisible, setIsReportModalVisible] = useState<boolean>(false);
+
+  // 🌡️ [AI & 배터리 데이터 연동 영역] 
+  // 추후 알림을 누를 때 벡엔드 API(예: getBatteryPassport(vehicleId))를 호출해서 이 상태에 저장 , 기본값 95°C 
+  const [currentBatteryTemp, setCurrentBatteryTemp] = useState<number>(95); 
+  
   // 더미 알림 데이터 (나중에 백엔드 API 연동 시, API 응답 데이터로 대체 예정)
   const listData: NotiItem[] = [
     { id: '1', type: '경고', title: '배터리 이상 징후 감지', desc: '배터리 정밀 진단 권장', time: '07:25', hasReport: false },
@@ -89,10 +102,20 @@ export default function NotificationListScreen() {
             <TouchableOpacity
               key={item.id}
               onPress={() => {
-                if (item.hasReport) {
-                  router.navigate('/(tabs)/home/report');
-                } else {
-                  // 웹 브라우저용 alert 대신 모바일 환경에 맞는 Alert.alert 사용 권장
+                // 알림이 '긴급'일 때 커스텀 모달 팝업창 활성화
+                if (item.type === '긴급') {
+                  // [추후 API 연동 시점 로직 예시]
+                  // const data: BatteryPassport = await getBatteryPassport(vehicle?.id);
+                  // setCurrentBatteryTemp(data.temperatureC);
+               
+                  setIsEmergencyModalVisible(true);
+                }
+                // 오직 '경고' 타입이면서 보고서가 존재할 때만 보고서 팝업창 활성화
+                else if (item.type === '경고' && item.hasReport) {
+                  setIsReportModalVisible(true);
+                } 
+                // 단발성 알림창 처리
+                else {
                   Alert.alert('알림', `${item.title} 단발성 알림 내역입니다.`);
                 }
               }}
@@ -129,6 +152,25 @@ export default function NotificationListScreen() {
           );
         })}
       </ScrollView>
+
+      <EmergencyModal 
+        visible={isEmergencyModalVisible} 
+        onClose={() => setIsEmergencyModalVisible(false)} 
+        temperature={currentBatteryTemp} 
+      />
+
+      <ReportModal
+        visible={isReportModalVisible}
+        onClose={() => setIsReportModalVisible(false)}
+        onDetailPress={() => {
+          setIsReportModalVisible(false);
+          router.push('/(tabs)/home/report');
+        }}
+        vehicleModel={vehicle?.model || '아이오닉5'}
+        plateNumber={vehicle?.plateNumber || '차량 번호 미등록'}
+        summaryText="최근 충전 중 평소보다 배터리 이상 과열 현상이 누적 감지되어 AI 정밀 보고서가 발행되었습니다."
+      />
+      
     </View>
   );
 }

@@ -1,11 +1,12 @@
+import { EmergencyModal } from '@/components/modal/EmergencyModal';
+import { ReportModal } from '@/components/modal/ReportModal';
+import { VehiclePickerModal } from '@/components/modal/VehiclePickerModal';
+import { useAuthStore } from '@/store/auth-store';
+import { useVehicleStore } from '@/store/vehicle-store';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
-
-// 사용자, 차량 정보 스토어 임포트
-import { useAuthStore } from '@/store/auth-store';
-import { useVehicleStore } from '@/store/vehicle-store';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -16,9 +17,12 @@ export default function HomeScreen() {
   const currentUserName = user?.name || '사용자';
   const currentVehicleName = vehicle?.model || '등록된 차량 없음';
   const currentPlateNumber = vehicle?.plateNumber || '차량 번호 미등록';
+  const currentBatteryTemp = (vehicle as any)?.temperatureC ?? 95;
 
+  // 🚨 팝업 상태 관리 
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
   const [showVehiclePicker, setShowVehiclePicker] = useState<boolean>(false);
+  const [showEmergencyModal, setShowEmergencyModal] = useState<boolean>(false); 
 
   // 🤖 [AI 연동 영역 데이터]
   const [aiReportSummary] = useState<string>("추후 AI가 요약해준 보고서 요약 내용이 실시간으로 연동되어 표시될 영역입니다.");
@@ -38,10 +42,22 @@ export default function HomeScreen() {
     { name: '고성동 행정복지센터', dist: '250m' }
   ]);
 
-  // 차량이 정상 등록되어 있을 때만 1.2초 뒤 보고서 모달을 띄웁니다.
+  // 차량 등록 상태에서 알림 단계에 따라 적절한 팝업 자동 트리거
   useEffect(() => {
     if (isRegistered) {
-      const timer = setTimeout(() => setShowReportModal(true), 1200);
+      // 추후 백엔드 응답 알림 레벨이 '긴급' 또는 '경고'로 들어올 때 분기 작동
+      const mockNotificationServerLevel = '긴급'; // '긴급' 또는 '경고'로 테스트해볼 수 있습니다.
+
+      const timer = setTimeout(() => {
+        if (mockNotificationServerLevel === '긴급') {
+          // 1순위: 긴급 상황 발생 시 화재 위험 불꽃 팝업 작동
+          setShowEmergencyModal(true);
+        } else if (mockNotificationServerLevel === '경고') {
+          // 2순위: 경고 상황 발생 시 기존 보고서 팝업 작동
+          setShowReportModal(true);
+        }
+      }, 1200);
+
       return () => clearTimeout(timer);
     }
   }, [isRegistered, vehicle]);
@@ -103,7 +119,7 @@ export default function HomeScreen() {
                 환영합니다!{'\n'}차량을 가지고 계신가요?
               </Text>
               <Text style={{ fontSize: 12, color: '#666666', textAlign: 'center', marginBottom: 20, lineHeight: 18 }}>
-                회원가입이 완료되었습니다. 지금 차량 종류와 차량 번호를 등록하시면 차량 화재 감지 및 배터리 관리 서비스를 이용할 수 있습니다.
+                지금 차량 종류와 차량 번호를 등록하시면 차량 화재 감지 및 배터리 관리 서비스를 이용할 수 있습니다.
               </Text>
               
               <TouchableOpacity 
@@ -236,134 +252,39 @@ export default function HomeScreen() {
         )}
       </ScrollView>
 
-      {/* ================= 🚨 [MODAL] 보고서 알림 모달 팝업 ================= */}
-      {showReportModal && (
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20, zIndex: 50 }}>
-          <View style={{ backgroundColor: '#ffffff', width: '100%', borderRadius: 16, padding: 20, alignItems: 'center', position: 'relative' }}>
-            
-            <TouchableOpacity 
-              onPress={() => setShowReportModal(false)} 
-              style={{ 
-                position: 'absolute', 
-                right: 16, 
-                top: 16, 
-                padding: 10, 
-                zIndex: 9999,
-              }}
-              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-            >
-              <Feather name="x" size={20} color="#AAAAAA" />
-            </TouchableOpacity>
+      <EmergencyModal 
+        visible={showEmergencyModal} 
+        onClose={() => setShowEmergencyModal(false)} 
+        temperature={currentBatteryTemp} 
+      />
 
-            <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#113B29', width: '100%', textAlign: 'left', marginBottom: 14 }}>
-              보고서 알림
-            </Text>
-            
-            <View style={{ width: '100%', backgroundColor: '#F7F9F6', borderWidth: 1, borderColor: '#DEE5DC', borderRadius: 12, padding: 16, marginBottom: 20 }}>
-              <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#113B29', textAlign: 'center', marginBottom: 10 }}>
-                보고서가 도착했습니다.
-              </Text>
-              <Text style={{ fontSize: 12, color: '#666666', lineHeight: 18, marginBottom: 14, textAlign: 'center', fontStyle: 'italic' }}>
-                {aiReportSummary}
-              </Text>
-              
-              <View style={{ borderTopWidth: 1, borderTopColor: '#E2E8E0', paddingTop: 12 }}>
-                <Text style={{ fontSize: 11, color: '#999999', marginBottom: 4 }}>• 발생시각 : 2026/07/15 13:30</Text>
-                <Text style={{ fontSize: 11, color: '#999999', marginBottom: 4 }}>• 위치 : 현재 충전소</Text>
-                <Text style={{ fontSize: 11, color: '#999999' }}>• 배터리 온도 : 50 ℃</Text>
-              </View>
-            </View>
-            
-            <TouchableOpacity 
-              onPress={() => {
-                setShowReportModal(false);
-                router.push('/(tabs)/home/report');
-              }}
-              style={{ width: '100%', backgroundColor: '#DCECD8', paddingVertical: 14, borderRadius: 12, alignItems: 'center' }}
-            >
-              <Text style={{ color: '#113B29', fontWeight: 'bold', fontSize: 14 }}>자세히 보기</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
+      <ReportModal
+        visible={showReportModal}
+        onClose={() => setShowReportModal(false)}
+        onDetailPress={() => {
+          setShowReportModal(false);
+          router.push('/(tabs)/home/report');
+        }}
+        vehicleModel={currentVehicleName}
+        plateNumber={currentPlateNumber}
+        summaryText={aiReportSummary}
+    />
 
-      {/* ================= 🚗 [MODAL] 차량 선택 팝업 ================= */}
-      {showVehiclePicker && (
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', paddingHorizontal: 20, zIndex: 50 }}>
-          <View style={{ backgroundColor: '#ffffff', width: '100%', borderRadius: 16, padding: 20, position: 'relative' }}>
-
-            <TouchableOpacity
-              onPress={() => setShowVehiclePicker(false)}
-              style={{ position: 'absolute', right: 16, top: 16, padding: 10, zIndex: 9999 }}
-              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-            >
-              <Feather name="x" size={20} color="#AAAAAA" />
-            </TouchableOpacity>
-
-            <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#113B29', marginBottom: 14 }}>
-              차량 선택
-            </Text>
-
-            {vehicles.map((v) => {
-              const isCurrent = v.id === vehicle?.id;
-              return (
-                <TouchableOpacity
-                  key={v.id}
-                  onPress={() => {
-                    setPrimaryVehicle(v.id);
-                    setShowVehiclePicker(false);
-                  }}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    backgroundColor: isCurrent ? '#EDF4E6' : '#F7F9F6',
-                    borderWidth: 1,
-                    borderColor: isCurrent ? '#B2D8B2' : '#EAEFEA',
-                    borderRadius: 12,
-                    paddingVertical: 12,
-                    paddingHorizontal: 16,
-                    marginBottom: 10,
-                  }}
-                >
-                  <View>
-                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#222222' }}>
-                      {v.nickname || v.model}
-                    </Text>
-                    <Text style={{ fontSize: 12, color: '#999999', marginTop: 2 }}>
-                      {v.model} · {v.plateNumber}
-                    </Text>
-                  </View>
-                  {isCurrent && <Feather name="check" size={18} color="#113B29" />}
-                </TouchableOpacity>
-              );
-            })}
-
-            <TouchableOpacity
-              onPress={() => {
-                setShowVehiclePicker(false);
-                router.push('/(tabs)/vehicle');
-              }}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderWidth: 1,
-                borderColor: '#B2D8B2',
-                borderStyle: 'dashed',
-                borderRadius: 12,
-                paddingVertical: 12,
-                marginTop: 4,
-              }}
-            >
-              <Feather name="plus" size={16} color="#113B29" />
-              <Text style={{ color: '#113B29', fontWeight: 'bold', fontSize: 13, marginLeft: 6 }}>
-                새 차량 등록하기
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
+    <VehiclePickerModal
+      visible={showVehiclePicker}
+      onClose={() => setShowVehiclePicker(false)}
+      vehicles={vehicles}
+      currentVehicleId={vehicle?.id}
+      onSelectVehicle={(id) => {
+        setPrimaryVehicle(id);
+        setShowVehiclePicker(false);
+      }}
+      onRegisterNewVehicle={() => {
+        setShowVehiclePicker(false);
+        router.push('/(tabs)/vehicle');
+      }}
+    />
+    
     </View>
   );
 }
