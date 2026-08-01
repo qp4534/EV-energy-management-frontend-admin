@@ -69,13 +69,7 @@ export default function TabsLayout() {
         name="guide-chat"
         options={{
           tabBarLabel: ({ color }) => (
-            <Text style={{ 
-              color, 
-              fontSize: 11, 
-              fontWeight: '500', 
-              textAlign: 'center',
-              lineHeight: 14,
-            }}>
+            <Text style={{ color, fontSize: 11, fontWeight: '500', textAlign: 'center', lineHeight: 14,}}>
               {"AI 충전\n가이드"}
             </Text>
           ),

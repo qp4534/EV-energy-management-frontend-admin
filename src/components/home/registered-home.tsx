@@ -1,63 +1,141 @@
-import { Link } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet } from 'react-native';
-
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { VehicleCard } from '@/components/vehicle-card';
-import { Spacing } from '@/constants/theme';
 import { Vehicle } from '@/types/vehicle';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 type RegisteredHomeProps = {
-  vehicle: Vehicle;
+  vehicle: Vehicle | null;
+  currentVehicleName: string;
+  currentPlateNumber: string;
+  aiChargingGuide: string;
+  estimatedLife: string;
+  batterySohProgress: number;
+  handleSwitchVehicle: () => void;
 };
 
-export function RegisteredHome({ vehicle }: RegisteredHomeProps) {
-  return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <VehicleCard vehicle={vehicle} />
+export function RegisteredHome({
+  vehicle,
+  currentVehicleName,
+  currentPlateNumber,
+  aiChargingGuide,
+  estimatedLife,
+  batterySohProgress,
+  handleSwitchVehicle
+}: RegisteredHomeProps) {
+  const router = useRouter();
 
-      <ThemedView style={styles.linkRow}>
-        <Link href="/battery-passport" asChild>
-          <Pressable style={styles.linkPressable}>
-            <ThemedView type="backgroundElement" style={styles.linkCard}>
-              <ThemedText type="smallBold">배터리 여권</ThemedText>
-            </ThemedView>
-          </Pressable>
-        </Link>
-        <Link href="/home/report" asChild>
-          <Pressable style={styles.linkPressable}>
-            <ThemedView type="backgroundElement" style={styles.linkCard}>
-              <ThemedText type="smallBold">리포트</ThemedText>
-            </ThemedView>
-          </Pressable>
-        </Link>
-        <Link href="/home/map" asChild>
-          <Pressable style={styles.linkPressable}>
-            <ThemedView type="backgroundElement" style={styles.linkCard}>
-              <ThemedText type="smallBold">충전소 지도</ThemedText>
-            </ThemedView>
-          </Pressable>
-        </Link>
-      </ThemedView>
-    </ScrollView>
+  // 📍 [위치 기반 데이터] 가까운 충전소 2개 기본셋팅 그대로 보존 
+  const [nearbyStations] = useState([
+    { name: '고성아파트 충전소', dist: '100m' }, 
+    { name: '고성동 행정복지센터', dist: '250m' }
+  ]); 
+
+  return (
+    <View>
+      {/* 1. 차량 관리 카드 */}
+      <View style={{ backgroundColor: '#ffffff', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#EAEFEA', marginBottom: 16 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#222222', marginRight: 8 }}>
+              {currentVehicleName}
+            </Text> 
+
+            <View style={{ backgroundColor: '#C2E0C2', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4 }}>
+              <Text style={{ color: '#113B29', fontSize: 10, fontWeight: 'bold' }}>{vehicle?.nickname || '대표 차량'}</Text> 
+            </View>
+            
+            <TouchableOpacity 
+              onPress={handleSwitchVehicle}
+              style={{ backgroundColor: '#EFEFEF', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, marginLeft: 4 }}
+            >
+              <Text style={{ color: '#666666', fontSize: 10, fontWeight: 'bold' }}>다른 차량</Text> 
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity 
+            onPress={() => router.push('/(tabs)/vehicle')}
+            style={{ backgroundColor: '#113B29', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 }}
+          >
+            <Text style={{ color: '#ffffff', fontSize: 10, fontWeight: 'bold' }}>+ 등록</Text> 
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ width: '100%', height: 140, backgroundColor: '#EFEFEF', borderRadius: 12, justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ alignItems: 'center' }}>
+            <MaterialCommunityIcons name="car-side" size={48} color="#BBBBBB" /> 
+            <Text style={{ color: '#999999', fontSize: 11, marginTop: 4 }}>
+              {currentPlateNumber} (DB 이미지 준비중)
+            </Text> 
+          </View>
+        </View>
+      </View>
+
+      {/* 2. AI 충전 가이드 카드 */}
+      <View style={{ backgroundColor: '#ffffff', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#EAEFEA', marginBottom: 16 }}>
+        <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#999999', marginBottom: 8 }}>AI 충전가이드</Text> 
+        <View style={{ backgroundColor: '#EDF4D9', padding: 16, borderRadius: 12 }}>
+          <Text style={{ color: '#4F6128', fontSize: 13, fontWeight: '600', lineHeight: 20 }}>
+            {aiChargingGuide}
+          </Text> 
+        </View>
+      </View>
+
+      {/* 3. 배터리 진단 카드 */}
+      <View style={{ backgroundColor: '#ffffff', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#EAEFEA', marginBottom: 16 }}>
+        <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#999999', marginBottom: 4 }}>배터리 진단</Text> 
+        <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#222222', marginBottom: 10 }}>
+          예상 잔존 수명 {estimatedLife}년 {vehicle?.batterySoh ? `(SOH: ${vehicle.batterySoh}%)` : ''}
+        </Text> 
+        <View style={{ width: '100%', height: 8, backgroundColor: '#F0F4E8', borderRadius: 4, overflow: 'hidden' }}>
+          <View style={{ width: `${batterySohProgress * 100}%`, height: '100%', backgroundColor: '#B2D8B2', borderRadius: 4 }} /> 
+        </View>
+      </View>
+
+      {/* 🟢 4. 주변 충전소 카드 */}
+      <TouchableOpacity 
+        onPress={() => router.push('/(tabs)/home/map')}
+        activeOpacity={0.7}
+        style={{ 
+          backgroundColor: '#ffffff', 
+          borderRadius: 16, 
+          padding: 20, 
+          borderWidth: 1, 
+          borderColor: '#EAEFEA', 
+          marginBottom: 16,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.05,
+          shadowRadius: 3,
+          elevation: 2,
+        }}
+      >
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#999999' }}>주변 충전소 (가까운 2개)</Text> 
+          <Feather name="chevron-right" size={16} color="#113B29" /> 
+        </View>
+        
+        {nearbyStations.map((station, idx) => (
+          <View 
+            key={idx} 
+            style={{ 
+              borderBottomWidth: idx === 0 ? 1 : 0, 
+              borderBottomColor: '#F5F5F5', 
+              paddingBottom: idx === 0 ? 10 : 0, 
+              marginBottom: idx === 0 ? 10 : 0, 
+              flexDirection: 'row', 
+              justifyContent: 'space-between', 
+              alignItems: 'center' 
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Feather name="map-pin" size={14} color="#113B29" /> 
+              <Text style={{ fontSize: 13, color: '#333333', marginLeft: 8 }}>{station.name}</Text> 
+            </View>
+            <Text style={{ fontSize: 12, color: '#999999' }}>{station.dist}</Text> 
+          </View>
+        ))}
+      </TouchableOpacity>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    padding: Spacing.four,
-    gap: Spacing.three,
-  },
-  linkRow: {
-    flexDirection: 'row',
-    gap: Spacing.two,
-  },
-  linkPressable: {
-    flex: 1,
-  },
-  linkCard: {
-    borderRadius: Spacing.three,
-    padding: Spacing.three,
-    alignItems: 'center',
-  },
-});
