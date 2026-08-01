@@ -1,43 +1,35 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Alert, ScrollView, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, ScrollView, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-// 🔌 충전소 데이터 규격 (추후 API 연동용)
-interface ChargingStation {
-  id: string;
-  name: string;
-  distance: string;
-  type: string; // 완속 2기, 급속 1기 등
-  status: 'available' | 'unavailable'; // 이용가능, 이용불가
-  statusText: string;
-}
+import { getNearbyChargers } from '@/api/charger';
+import { Charger } from '@/types/charger';
 
 export default function MapScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState<boolean>(true); // 바텀시트 열림/닫힘 상태
+  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState<boolean>(true); 
 
-  // 📍 더미 데이터 
-  // 추후 실제 구현 시: expo-location으로 사용자 위/경도를 딴 후 백엔드 API에서 가까운 목록을 fetch 받아옵니다.
-  const [stations] = useState<ChargingStation[]>([
-    {
-      id: '1',
-      name: '고성아파트 충전소',
-      distance: '100m',
-      type: '완속 2기',
-      status: 'available',
-      statusText: '이용가능'
-    },
-    {
-      id: '2',
-      name: '고성동 행정복지센터 충전소',
-      distance: '250m',
-      type: '급속 1기',
-      status: 'unavailable',
-      statusText: '이용불가'
+  const [stations, setStations] = useState<Charger[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  // 컴포넌트 마운트 시 주변 충전소 API 호출
+  useEffect(() => {
+    async function fetchStations() {
+      try {
+        setIsLoading(true);
+        const data = await getNearbyChargers();
+        setStations(data);
+      } catch (error) {
+        console.error('충전소 목록을 불러오는 중 오류 발생:', error);
+        Alert.alert('에러', '충전소 데이터를 가져오지 못했습니다.');
+      } finally {
+        setIsLoading(false);
+      }
     }
-  ]);
+    fetchStations();
+  }, []);
 
   // 🔍 검색 실행 함수
   const handleSearch = () => {
@@ -55,18 +47,9 @@ export default function MapScreen() {
       {/* 🟢 상단 딥그린 헤더 바 */}
       <View 
         style={{ 
-          backgroundColor: '#113B29', 
-          paddingTop: 55, 
-          paddingBottom: 25, 
-          paddingHorizontal: 24,
-          borderBottomLeftRadius: 24,
-          borderBottomRightRadius: 24,
-          zIndex: 10,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.15,
-          shadowRadius: 6,
-          elevation: 5
+          backgroundColor: '#113B29', paddingTop: 55, paddingBottom: 25, paddingHorizontal: 24, borderBottomLeftRadius: 24,
+          borderBottomRightRadius: 24, zIndex: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.15, shadowRadius: 6, elevation: 5
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
@@ -79,10 +62,7 @@ export default function MapScreen() {
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <TouchableOpacity 
           onPress={() => router.back()} 
-          style={{ 
-            marginRight: 6,   
-            marginLeft: -6,  
-          }}
+          style={{ marginRight: 6, marginLeft: -6,}}
         >
           <Ionicons name="chevron-back" size={26} color="white" />
         </TouchableOpacity>
@@ -103,7 +83,6 @@ export default function MapScreen() {
             3. 아래 View를 <MapView> 컴포넌트로 교체하면 진짜 지도가 뜹니다.
         */}
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#E2EFE0', justifyContent: 'center', alignItems: 'center' }}>
-          {/* 임시 아이콘 배치 */}
           <Feather name="map" size={64} color="#A3C9A8" style={{ opacity: 0.5 }} />
           <Text style={{ color: '#7FA885', fontSize: 12, marginTop: 8 }}>[ react-native-maps 지도 연동 영역 ]</Text>
           
@@ -194,23 +173,32 @@ export default function MapScreen() {
           </TouchableOpacity>
 
           {/* 리스트 본문 (열려있을 때만 보임) */}
-          {isBottomSheetOpen && (
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#113B29" style={{ marginVertical: 20 }} />
+          ) : (
+            isBottomSheetOpen && (
             <ScrollView 
               showsVerticalScrollIndicator={false} 
               style={{ maxHeight: 200 }}
               contentContainerStyle={{ paddingBottom: 10 }} 
             >
-              {stations.map((item, idx) => (
-                <View 
-                  key={item.id} 
-                  style={{ 
-                    borderBottomWidth: idx === stations.length - 1 ? 0 : 1, 
-                    borderBottomColor: '#EEF2EE', 
-                    paddingBottom: 14, 
-                    marginBottom: 14,
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
+              {stations.map((item, idx) => {
+                const isAvailable = item.isAvailable;
+                const statusText = isAvailable ? '이용가능' : '이용불가';
+                const displayDistance = item.distanceKm ? `${item.distanceKm} km` : '0 km';
+                const stationType = '급속 1기'; // 혹은 필요시 item.address 활용
+
+                return (
+                  <View 
+                    key={item.id} 
+                    style={{ 
+                      borderBottomWidth: idx === stations.length - 1 ? 0 : 1, 
+                      borderBottomColor: '#EEF2EE', 
+                      paddingBottom: 14, 
+                      marginBottom: 14,
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
                   }}
                 >
 
@@ -219,14 +207,14 @@ export default function MapScreen() {
                     {item.name}
                   </Text>
                   <Text style={{ fontSize: 12, color: '#999999' }}>
-                    {item.distance}, {item.type}, {item.statusText}
+                    {displayDistance}, {stationType}
                   </Text>
                 </View>
 
                 {/* 이용 가능 여부 태그 */}
                 <View 
                   style={{ 
-                    backgroundColor: item.status === 'available' ? '#EDF4D9' : '#FFE3D1', 
+                    backgroundColor: isAvailable ? '#EDF4D9' : '#FFE3D1', 
                     paddingHorizontal: 12, 
                     paddingVertical: 6, 
                     borderRadius: 14 
@@ -234,20 +222,21 @@ export default function MapScreen() {
                 >
                   <Text 
                     style={{ 
-                      color: item.status === 'available' ? '#4F6128' : '#FF924A', 
+                      color: isAvailable ? '#4F6128' : '#FF924A', 
                       fontSize: 12, 
                       fontWeight: 'bold' 
-                    }}
-                  >
-                    {item.statusText}
+                    }}>
+                    {statusText}
                   </Text>
                 </View>
               </View>
-            ))}
+            );
+          })}
           </ScrollView>
-          )}
-        </View>
+          )
+        )}
       </View>
     </View>
-  );
+  </View>
+);
 }
