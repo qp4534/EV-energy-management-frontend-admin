@@ -13,11 +13,13 @@ import { useAuthStore } from '@/store/auth-store';
 import { useVehicleStore } from '@/store/vehicle-store';
 
 import { Charger } from '@/types/charger';
-import { NotiType } from '@/types/notification';
+//import { NotiType } from '@/types/notification';
+import { Notification } from '@/types/notification';
 import { Report } from '@/types/report';
 
 import { getBatteryPassport } from '@/api/battery';
 import { getNearbyChargers } from '@/api/charger';
+import { getNotifications } from '@/api/notification';
 import { getReports } from '@/api/report';
 
 export default function HomeScreen() {
@@ -38,9 +40,12 @@ export default function HomeScreen() {
 
   // 실시간 API 연동 상태들
   const [chargers, setChargers] = useState<Charger[]>([]);
-  const [activeReport, setActiveReport] = useState<(Report & { type?: NotiType }) | null>(null);
+  const [activeReport, setActiveReport] = useState<Report | null>(null);
   const [batteryInfo, setBatteryInfo] = useState<any>(null);
   const [aiChargingGuide, setAiChargingGuide] = useState<string>("추후 AI 가이드 연동, 배터리 온도가 너무 높습니다!\n급속 충전 대신 완속 충전을 추천합니다.");
+
+  // 최신 알림 상태를 저장할 변수
+  const [latestNotification, setLatestNotification] = useState<Notification | null>(null);
 
   // 데이터 바인딩 로직
   useEffect(() => {
@@ -52,21 +57,24 @@ export default function HomeScreen() {
       try {
         setIsLoading(true);
         // 1. 충전소, 보고서, 배터리 패스포트 API 동시 호출
-        const [chargerList, reportList, batteryData] = await Promise.all([
+        const [chargerList, reportList, batteryData, notiList] = await Promise.all([
           getNearbyChargers(),
           getReports(),
           getBatteryPassport(vehicle?.id || 'default'),
+          getNotifications(),
         ]);
 
         setChargers(chargerList);
         setBatteryInfo(batteryData);
 
-        // 2. 가장 최신 보고서 연동 및 상태 레벨 매핑 (임의로 '경고' 주입 테스트)
+        // 2. 가장 최신 보고서 연동 및 상태 레벨 매핑
         if (reportList && reportList.length > 0) {
-          setActiveReport({
-            ...reportList[0],
-            type: '경고', 
-          });
+          setActiveReport(reportList[0]);
+        }
+
+        // 3. 가장 최신 알림 연동
+        if (notiList && notiList.length > 0) {
+          setLatestNotification(notiList[0]);
         }
       } catch (error) {
         console.error('홈 데이터를 불러오는 중 에러 발생:', error);
@@ -80,23 +88,20 @@ export default function HomeScreen() {
 
   // 알림 단계 상태 자동 모달 레이어 트리거 연동
   useEffect(() => {
-    if (isRegistered && !isLoading) {
-      // 배터리 실시간 온도가 90도 이상 비상이거나 알림이 긴급일 때 분기 작동
-      const currentTemp = batteryInfo?.temperatureC ?? 0;
-      
+    if (isRegistered && !isLoading && latestNotification) {
       const timer = setTimeout(() => {
-        if (currentTemp >= 50) {
-          // 1순위: 위험 고온 상태 시 불꽃 팝업 작동
+        if (latestNotification.type === '긴급') {
+          // 1순위: 긴급일시 팝업 작동
           setShowEmergencyModal(true);
-        } else if (activeReport) {
-          // 2순위: 진단 보고서 발행 완료 시 팝업 작동
+        } else if (latestNotification.type === '경고') {
+          // 2순위: 경고이면서 진단 보고서 발행 완료 시 팝업 작동
           setShowReportModal(true);
         }
       }, 800);
 
       return () => clearTimeout(timer);
     }
-  }, [isRegistered, isLoading, batteryInfo, activeReport]);
+  }, [isRegistered, isLoading, latestNotification]);
 
   // 🚗 등록된 차량 중 하나를 대표 차량으로 선택하는 창을 엽니다.
   // (Alert.alert는 웹 빌드의 react-native-web에서 아무 동작도 하지 않는 no-op이라 커스텀 모달로 구현)
@@ -186,7 +191,7 @@ export default function HomeScreen() {
         }}
         vehicleModel={currentVehicleName}
         plateNumber={currentPlateNumber}
-        reportData={activeReport} // 낱개 텍스트 대신 객체 전달, 추후 백엔드 API 연동 시 실시간 데이터로 교체 가능
+        reportData={activeReport? { ...activeReport, type: latestNotification?.type } : null} // 추후 백엔드 API 연동 시 실시간 데이터로 교체 가능
       />
 
       <VehiclePickerModal
