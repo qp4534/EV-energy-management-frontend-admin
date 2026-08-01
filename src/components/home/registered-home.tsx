@@ -1,7 +1,7 @@
+import { Charger } from '@/types/charger';
 import { Vehicle } from '@/types/vehicle';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 type RegisteredHomeProps = {
@@ -11,6 +11,7 @@ type RegisteredHomeProps = {
   aiChargingGuide: string;
   estimatedLife: string;
   batterySohProgress: number;
+  nearbyStations: Charger[];
   handleSwitchVehicle: () => void;
 };
 
@@ -21,15 +22,10 @@ export function RegisteredHome({
   aiChargingGuide,
   estimatedLife,
   batterySohProgress,
+  nearbyStations,
   handleSwitchVehicle
 }: RegisteredHomeProps) {
   const router = useRouter();
-
-  // 📍 [위치 기반 데이터] 가까운 충전소 2개 기본셋팅 그대로 보존 
-  const [nearbyStations] = useState([
-    { name: '고성아파트 충전소', dist: '100m' }, 
-    { name: '고성동 행정복지센터', dist: '250m' }
-  ]); 
 
   return (
     <View>
@@ -65,7 +61,7 @@ export function RegisteredHome({
           <View style={{ alignItems: 'center' }}>
             <MaterialCommunityIcons name="car-side" size={48} color="#BBBBBB" /> 
             <Text style={{ color: '#999999', fontSize: 11, marginTop: 4 }}>
-              {currentPlateNumber} (DB 이미지 준비중)
+              (이미지 준비중)
             </Text> 
           </View>
         </View>
@@ -111,30 +107,40 @@ export function RegisteredHome({
         }}
       >
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#999999' }}>주변 충전소 (가까운 2개)</Text> 
+          <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#999999' }}>주변 충전소</Text> 
           <Feather name="chevron-right" size={16} color="#113B29" /> 
         </View>
-        
-        {nearbyStations.map((station, idx) => (
-          <View 
-            key={idx} 
-            style={{ 
-              borderBottomWidth: idx === 0 ? 1 : 0, 
-              borderBottomColor: '#F5F5F5', 
-              paddingBottom: idx === 0 ? 10 : 0, 
-              marginBottom: idx === 0 ? 10 : 0, 
-              flexDirection: 'row', 
-              justifyContent: 'space-between', 
-              alignItems: 'center' 
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Feather name="map-pin" size={14} color="#113B29" /> 
-              <Text style={{ fontSize: 13, color: '#333333', marginLeft: 8 }}>{station.name}</Text> 
+
+        {nearbyStations.slice(0, 2).map((station, idx) => {
+          const distanceDisplay = station.distanceKm < 1 
+            ? `${Math.round(station.distanceKm * 1000)}m` 
+            : `${station.distanceKm}km`;
+
+          return (
+            <View 
+              key={station.id || idx} 
+              style={{ 
+                borderBottomWidth: idx === 0 ? 1 : 0, 
+                borderBottomColor: '#F5F5F5', 
+                paddingBottom: idx === 0 ? 10 : 0, 
+                marginBottom: idx === 0 ? 10 : 0, 
+                flexDirection: 'row', 
+                justifyContent: 'space-between', 
+                alignItems: 'center' 
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Feather 
+                  name="map-pin" 
+                  size={14} 
+                  color={station.isAvailable ? "#113B29" : "#AAAAAA"} 
+                />
+                <Text style={{ fontSize: 13, color: '#333333', marginLeft: 8 }}>{station.name}</Text>
+              </View>
+              <Text style={{ fontSize: 12, color: '#999999' }}>{distanceDisplay}</Text>
             </View>
-            <Text style={{ fontSize: 12, color: '#999999' }}>{station.dist}</Text> 
-          </View>
-        ))}
+          );
+        })}
       </TouchableOpacity>
     </View>
   );

@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 
 import { RegisteredHome } from '@/components/home/registered-home';
 import { UnregisteredHome } from '@/components/home/unregistered-home';
@@ -11,7 +11,14 @@ import { VehiclePickerModal } from '@/components/modal/VehiclePickerModal';
 
 import { useAuthStore } from '@/store/auth-store';
 import { useVehicleStore } from '@/store/vehicle-store';
+
+import { Charger } from '@/types/charger';
+import { NotiType } from '@/types/notification';
 import { Report } from '@/types/report';
+
+import { getBatteryPassport } from '@/api/battery';
+import { getNearbyChargers } from '@/api/charger';
+import { getReports } from '@/api/report';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -22,50 +29,74 @@ export default function HomeScreen() {
   const currentUserName = user?.name || '사용자';
   const currentVehicleName = vehicle?.model || '등록된 차량 없음';
   const currentPlateNumber = vehicle?.plateNumber || '차량 번호 미등록';
-  const currentBatteryTemp = (vehicle as any)?.temperatureC ?? 95;
 
-  // 🚨 팝업 상태 관리 
+  // 🚨 팝업 및 데이터 상태 관리 
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
   const [showVehiclePicker, setShowVehiclePicker] = useState<boolean>(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState<boolean>(false); 
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // 🤖 [AI 연동 영역 데이터]
-  const [aiReportSummary] = useState<string>("추후 AI가 요약해준 보고서 요약 내용이 실시간으로 연동되어 표시될 영역입니다.");
-  
-  // 💡 AI 충전가이드 연동 상태: 추후 백엔드 AI가 분석한 데이터(문구)를 setState에 넣어주면 실시간 갱신됩니다.
-  const [aiChargingGuide, setAiChargingGuide] = useState<string>(
-    "추후 AI 가이드 연동, 배터리 온도가 너무 높습니다!\n급속 충전 대신 완속 충전을 추천합니다."
-  );
+  // 실시간 API 연동 상태들
+  const [chargers, setChargers] = useState<Charger[]>([]);
+  const [activeReport, setActiveReport] = useState<(Report & { type?: NotiType }) | null>(null);
+  const [batteryInfo, setBatteryInfo] = useState<any>(null);
+  const [aiChargingGuide, setAiChargingGuide] = useState<string>("추후 AI 가이드 연동, 배터리 온도가 너무 높습니다!\n급속 충전 대신 완속 충전을 추천합니다.");
 
-  // 배터리 잔존 수명(Soh)이 스토어에 있다면 해당 값을 반영하고, 없으면 기본값(3.3)을 보여줍니다.
-  const batterySohProgress = vehicle?.batterySoh ? vehicle.batterySoh / 100 : 0.35;
-  const estimatedLife = (batterySohProgress * 10).toFixed(1); // SOH 기반 잔존 수명 시뮬레이션
-
-  // 📍 [위치 기반 데이터] 가까운 충전소 2개 기본셋팅
-  const [nearbyStations, setNearbyStations] = useState([
-    { name: '고성아파트 충전소', dist: '100m' }, 
-    { name: '고성동 행정복지센터', dist: '250m' }
-  ]);
-
-  // 차량 등록 상태에서 알림 단계에 따라 적절한 팝업 자동 트리거
+  // 데이터 바인딩 로직
   useEffect(() => {
-    if (isRegistered) {
-      // 추후 백엔드 응답 알림 레벨이 '긴급' 또는 '경고'로 들어올 때 분기 작동
-      const mockNotificationServerLevel = '긴급'; // '긴급' 또는 '경고'로 테스트해볼 수 있습니다.
+    async function loadHomeData() {
+      if (!isRegistered) {
+        setIsLoading(false);
+        return;
+      }
+      try {
+        setIsLoading(true);
+        // 1. 충전소, 보고서, 배터리 패스포트 API 동시 호출
+        const [chargerList, reportList, batteryData] = await Promise.all([
+          getNearbyChargers(),
+          getReports(),
+          getBatteryPassport(vehicle?.id || 'default'),
+        ]);
 
+        setChargers(chargerList);
+        setBatteryInfo(batteryData);
+
+        // 2. 가장 최신 보고서 연동 및 상태 레벨 매핑 (임의로 '경고' 주입 테스트)
+        if (reportList && reportList.length > 0) {
+          setActiveReport({
+            ...reportList[0],
+            type: '경고', 
+          });
+        }
+      } catch (error) {
+        console.error('홈 데이터를 불러오는 중 에러 발생:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadHomeData();
+  }, [isRegistered, vehicle]);
+
+  // 알림 단계 상태 자동 모달 레이어 트리거 연동
+  useEffect(() => {
+    if (isRegistered && !isLoading) {
+      // 배터리 실시간 온도가 50도 이상 비상이거나 알림이 긴급일 때 분기 작동
+      const currentTemp = batteryInfo?.temperatureC ?? 0;
+      
       const timer = setTimeout(() => {
-        if (mockNotificationServerLevel === '긴급') {
-          // 1순위: 긴급 상황 발생 시 화재 위험 불꽃 팝업 작동
+        if (currentTemp >= 50) {
+          // 1순위: 위험 고온 상태 시 불꽃 팝업 작동
           setShowEmergencyModal(true);
-        } else if (mockNotificationServerLevel === '경고') {
-          // 2순위: 경고 상황 발생 시 기존 보고서 팝업 작동
+        } else if (activeReport) {
+          // 2순위: 진단 보고서 발행 완료 시 팝업 작동
           setShowReportModal(true);
         }
-      }, 1200);
+      }, 800);
 
       return () => clearTimeout(timer);
     }
-  }, [isRegistered, vehicle]);
+  }, [isRegistered, isLoading, batteryInfo, activeReport]);
 
   // 🚗 등록된 차량 중 하나를 대표 차량으로 선택하는 창을 엽니다.
   // (Alert.alert는 웹 빌드의 react-native-web에서 아무 동작도 하지 않는 no-op이라 커스텀 모달로 구현)
@@ -73,14 +104,15 @@ export default function HomeScreen() {
     setShowVehiclePicker(true);
   };
 
-  // 🤖 백엔드 API 연동 전까지 UI 테스트를 위한 더미 객체 상태
-  const [activeReport, setActiveReport] = useState<(Report & { type?: any }) | null>({
-    id: 'rep_01',
-    title: 'AI 정밀 진단 리포트',
-    summary: '최근 충전 중 평소보다 배터리 이상 과열 현상이 누적 감지되어 AI 정밀 보고서가 발행되었습니다.',
-    createdAt: '2026-08-01',
-    type: '경고' 
-  });
+  // 백엔드 API 지연 응답 처리 레이아웃 시프트 방지 로딩 스피너 가드
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#F4F6F3', justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color="#113B29" />
+        <Text style={{ marginTop: 12, color: '#666666', fontSize: 13, fontWeight: '500' }}>데이터 로드 중...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F4F6F3' }}>
@@ -130,8 +162,9 @@ export default function HomeScreen() {
             currentVehicleName={currentVehicleName}
             currentPlateNumber={currentPlateNumber}
             aiChargingGuide={aiChargingGuide}
-            estimatedLife={estimatedLife}
-            batterySohProgress={batterySohProgress}
+            estimatedLife={(batteryInfo?.rul || 3.3).toFixed(1)}
+            batterySohProgress={(batteryInfo?.soh || 90) / 100}
+            nearbyStations={chargers} 
             handleSwitchVehicle={handleSwitchVehicle}
           />
         )}
@@ -141,7 +174,7 @@ export default function HomeScreen() {
       <EmergencyModal 
         visible={showEmergencyModal} 
         onClose={() => setShowEmergencyModal(false)} 
-        temperature={currentBatteryTemp} 
+        temperature={batteryInfo?.temperatureC ?? 95}
       />
 
       <ReportModal
