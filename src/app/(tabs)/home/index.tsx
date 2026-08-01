@@ -11,6 +11,7 @@ import { VehiclePickerModal } from '@/components/modal/VehiclePickerModal';
 
 import { useAuthStore } from '@/store/auth-store';
 import { useVehicleStore } from '@/store/vehicle-store';
+import { Report } from '@/types/report';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -71,6 +72,15 @@ export default function HomeScreen() {
   const handleSwitchVehicle = () => {
     setShowVehiclePicker(true);
   };
+
+  // 🤖 백엔드 API 연동 전까지 UI 테스트를 위한 더미 객체 상태
+  const [activeReport, setActiveReport] = useState<(Report & { type?: any }) | null>({
+    id: 'rep_01',
+    title: 'AI 정밀 진단 리포트',
+    summary: '최근 충전 중 평소보다 배터리 이상 과열 현상이 누적 감지되어 AI 정밀 보고서가 발행되었습니다.',
+    createdAt: '2026-08-01',
+    type: '경고' 
+  });
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F4F6F3' }}>
@@ -143,7 +153,7 @@ export default function HomeScreen() {
         }}
         vehicleModel={currentVehicleName}
         plateNumber={currentPlateNumber}
-        summaryText={aiReportSummary}
+        reportData={activeReport} // 낱개 텍스트 대신 객체 전달, 추후 백엔드 API 연동 시 실시간 데이터로 교체 가능
       />
 
       <VehiclePickerModal

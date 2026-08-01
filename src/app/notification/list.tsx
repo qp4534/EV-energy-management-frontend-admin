@@ -2,6 +2,7 @@ import { EmergencyModal } from '@/components/modal/EmergencyModal';
 import { ReportModal } from '@/components/modal/ReportModal';
 import { useVehicleStore } from '@/store/vehicle-store';
 import { NotiType } from '@/types/notification';
+import { Report } from '@/types/report';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -51,6 +52,15 @@ export default function NotificationListScreen() {
   };
 
   const filtered = filter === 'ALL' ? listData : listData.filter(d => d.type === filter);
+
+    // 🤖 백엔드 API 연동 전까지 UI 테스트를 위한 더미 객체 상태
+  const [activeReport, setActiveReport] = useState<(Report & { type?: any }) | null>({
+    id: 'rep_01',
+    title: 'AI 정밀 진단 리포트',
+    summary: '최근 충전 중 평소보다 배터리 이상 과열 현상이 누적 감지되어 AI 정밀 보고서가 발행되었습니다.',
+    createdAt: '2026-08-01',
+    type: '경고' 
+  });
 
   return (
     <View style={{ flex: 1, backgroundColor: '#FAF9F5', paddingTop: 56, paddingHorizontal: 20 }}>
@@ -168,7 +178,7 @@ export default function NotificationListScreen() {
         }}
         vehicleModel={vehicle?.model || '아이오닉5'}
         plateNumber={vehicle?.plateNumber || '차량 번호 미등록'}
-        summaryText="최근 충전 중 평소보다 배터리 이상 과열 현상이 누적 감지되어 AI 정밀 보고서가 발행되었습니다."
+        reportData={activeReport}
       />
       
     </View>
