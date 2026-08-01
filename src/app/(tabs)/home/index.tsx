@@ -81,7 +81,7 @@ export default function HomeScreen() {
   // 알림 단계 상태 자동 모달 레이어 트리거 연동
   useEffect(() => {
     if (isRegistered && !isLoading) {
-      // 배터리 실시간 온도가 50도 이상 비상이거나 알림이 긴급일 때 분기 작동
+      // 배터리 실시간 온도가 90도 이상 비상이거나 알림이 긴급일 때 분기 작동
       const currentTemp = batteryInfo?.temperatureC ?? 0;
       
       const timer = setTimeout(() => {
