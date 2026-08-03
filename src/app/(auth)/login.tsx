@@ -55,7 +55,7 @@ export default function LoginScreen() {
             <Text style={styles.title}>Login</Text>
 
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>이메일</Text>
+              <Text style={styles.fieldLabel}>아이디</Text>
               <BrandInput
                 icon="envelope"
                 value={email}
