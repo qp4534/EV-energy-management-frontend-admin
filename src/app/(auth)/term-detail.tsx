@@ -10,6 +10,7 @@ import {
   TermIcon,
   TermKey,
   TermSection,
+  TermTextBlock,
   TERMS,
 } from '@/constants/terms-content';
 import { Brand } from '@/constants/theme';
@@ -41,6 +42,15 @@ function BulletIcon({ icon }: { icon: TermIcon }) {
     return (
       <SymbolView
         name={{ ios: 'mappin.circle.fill', android: 'location_on', web: 'location_on' }}
+        size={14}
+        tintColor={Brand.label}
+      />
+    );
+  }
+  if (icon === 'chart') {
+    return (
+      <SymbolView
+        name={{ ios: 'chart.bar.fill', android: 'insights', web: 'insights' }}
         size={14}
         tintColor={Brand.label}
       />
@@ -150,11 +160,16 @@ export default function TermDetailScreen() {
             </View>
           </View>
 
-          {content.sections[0]?.type !== 'table' && <View style={styles.divider} />}
+          {content.sections[0]?.type === 'article' && <View style={styles.divider} />}
 
-          {content.sections.map((section, index) => (
-            <TermSectionView key={index} section={section} />
-          ))}
+          {content.sections.map((section, index) => {
+            const prevSection = content.sections[index - 1];
+            const showChapter =
+              section.type === 'article' &&
+              section.chapter &&
+              (prevSection?.type !== 'article' || prevSection.chapter !== section.chapter);
+            return <TermSectionView key={index} section={section} showChapter={!!showChapter} />;
+          })}
         </ScrollView>
 
         <View style={styles.footer}>
@@ -167,7 +182,7 @@ export default function TermDetailScreen() {
   );
 }
 
-function TermSectionView({ section }: { section: TermSection }) {
+function TermSectionView({ section, showChapter }: { section: TermSection; showChapter: boolean }) {
   if (section.type === 'paragraph') {
     return (
       <View style={styles.paragraphBlock}>
@@ -176,13 +191,60 @@ function TermSectionView({ section }: { section: TermSection }) {
     );
   }
 
-  if (section.type === 'table') {
+  return (
+    <View style={styles.articleBlock}>
+      {showChapter && section.chapter && <Text style={styles.chapterLabel}>{section.chapter}</Text>}
+
+      {!!section.title && (
+        <View style={styles.articleHeadingRow}>
+          <View style={styles.articleHeadingTag}>
+            <Text style={styles.articleHeadingTagText}>{section.heading}</Text>
+          </View>
+          <Text style={styles.articleTitle}>{section.title}</Text>
+        </View>
+      )}
+      {!section.title && (
+        <View style={styles.articleHeadingTag}>
+          <Text style={styles.articleHeadingTagText}>{section.heading}</Text>
+        </View>
+      )}
+
+      {section.blocks.map((block, index) => (
+        <TermBlockView key={index} block={block} />
+      ))}
+    </View>
+  );
+}
+
+function TermBlockView({ block }: { block: TermTextBlock }) {
+  if (block.kind === 'paragraph') {
+    return <Text style={styles.articleBody}>{block.text}</Text>;
+  }
+
+  if (block.kind === 'bullets') {
     return (
-      <View style={styles.tableBlock}>
-        {section.rows.map((row, index) => (
-          <View key={row.label} style={[styles.tableRow, index === 0 && styles.tableRowFirst]}>
-            <Text style={styles.tableLabel}>{row.label}</Text>
-            <Text style={styles.tableValue}>{row.value}</Text>
+      <View style={styles.plainBulletList}>
+        {block.items.map((item, index) => (
+          <View key={index} style={styles.plainBulletRow}>
+            <Text style={styles.plainBulletDot}>•</Text>
+            <Text style={styles.plainBulletText}>{item}</Text>
+          </View>
+        ))}
+      </View>
+    );
+  }
+
+  if (block.kind === 'iconBullets') {
+    return (
+      <View style={styles.bulletList}>
+        {block.items.map((bullet, index) => (
+          <View key={index} style={styles.bulletCard}>
+            {bullet.icon && (
+              <View style={styles.bulletIconWrap}>
+                <BulletIcon icon={bullet.icon} />
+              </View>
+            )}
+            <Text style={styles.bulletText}>{bullet.text}</Text>
           </View>
         ))}
       </View>
@@ -190,30 +252,17 @@ function TermSectionView({ section }: { section: TermSection }) {
   }
 
   return (
-    <View style={styles.articleBlock}>
-      <View style={styles.articleHeadingRow}>
-        <View style={styles.articleHeadingTag}>
-          <Text style={styles.articleHeadingTagText}>{section.heading}</Text>
-        </View>
-        <Text style={styles.articleTitle}>{section.title}</Text>
-      </View>
-
-      {section.body && <Text style={styles.articleBody}>{section.body}</Text>}
-
-      {section.bullets && (
-        <View style={styles.bulletList}>
-          {section.bullets.map((bullet, index) => (
-            <View key={index} style={styles.bulletCard}>
-              {bullet.icon && (
-                <View style={styles.bulletIconWrap}>
-                  <BulletIcon icon={bullet.icon} />
-                </View>
-              )}
-              <Text style={styles.bulletText}>{bullet.text}</Text>
+    <View style={styles.tableBlock}>
+      {block.rows.map((row, rowIndex) => (
+        <View key={rowIndex} style={[styles.tableRow, rowIndex === 0 && styles.tableRowFirst]}>
+          {row.map((cell, cellIndex) => (
+            <View key={cellIndex} style={styles.tableCell}>
+              <Text style={styles.tableLabel}>{block.columns[cellIndex]}</Text>
+              <Text style={styles.tableValue}>{cell}</Text>
             </View>
           ))}
         </View>
-      )}
+      ))}
     </View>
   );
 }
@@ -326,6 +375,12 @@ const styles = StyleSheet.create({
   articleBlock: {
     gap: 8,
   },
+  chapterLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: Brand.primaryDark,
+    marginTop: 6,
+  },
   articleHeadingRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -379,6 +434,25 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     color: Brand.text,
   },
+  plainBulletList: {
+    gap: 6,
+    marginTop: 2,
+  },
+  plainBulletRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  plainBulletDot: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: Brand.label,
+  },
+  plainBulletText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 20,
+    color: Brand.textMuted,
+  },
   paragraphBlock: {
     gap: 4,
   },
@@ -394,7 +468,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   tableRow: {
-    gap: 4,
+    gap: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderTopWidth: 1,
@@ -402,6 +476,9 @@ const styles = StyleSheet.create({
   },
   tableRowFirst: {
     borderTopWidth: 0,
+  },
+  tableCell: {
+    gap: 4,
   },
   tableLabel: {
     fontSize: 12,
