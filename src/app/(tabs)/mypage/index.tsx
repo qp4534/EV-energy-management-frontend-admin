@@ -1,3 +1,4 @@
+import { BrandHeader } from '@/components/common/brand-header';
 import { useAuthStore } from '@/store/auth-store';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -43,27 +44,7 @@ export default function MyPageIndexScreen() {
     <View style={{ flex: 1, backgroundColor: '#F9F9F6' }}>
       <StatusBar barStyle="light-content" />
       
-      {/* 🟢 상단 딥그린 헤더 바 */}
-      <View 
-        style={{ 
-          backgroundColor: '#113B29', 
-          paddingTop: 55, 
-          paddingBottom: 25, 
-          paddingHorizontal: 24,
-          borderBottomLeftRadius: 24,
-          borderBottomRightRadius: 24,
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-          <Text style={{ color: '#3CD070', fontSize: 18, fontWeight: 'bold', marginRight: 4 }}>⚡</Text>
-          <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: 'bold', letterSpacing: 0.5, opacity: 0.9 }}>
-            MijungE
-          </Text>
-        </View>
-        <Text style={{ color: '#ffffff', fontSize: 25, fontWeight: 'bold' }}>
-          마이페이지
-        </Text>
-      </View>
+      <BrandHeader title="마이페이지" />
 
       <ScrollView 
         style={{ flex: 1, paddingHorizontal: 24 }} 

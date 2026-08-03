@@ -1,7 +1,6 @@
-import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StatusBar, Text, View } from 'react-native';
 
 import { RegisteredHome } from '@/components/home/registered-home';
 import { UnregisteredHome } from '@/components/home/unregistered-home';
@@ -21,6 +20,7 @@ import { getBatteryPassport } from '@/api/battery';
 import { getNearbyChargers } from '@/api/charger';
 import { getNotifications } from '@/api/notification';
 import { getReports } from '@/api/report';
+import { BrandHeader } from '@/components/common/brand-header';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -123,35 +123,11 @@ export default function HomeScreen() {
     <View style={{ flex: 1, backgroundColor: '#F4F6F3' }}>
       <StatusBar barStyle="light-content" />
 
-      {/* 🟢 상단 딥그린 헤더 바 */}
-      <View 
-        style={{ 
-          backgroundColor: '#113B29', 
-          paddingTop: 55, 
-          paddingBottom: 25, 
-          paddingHorizontal: 24, 
-          borderBottomLeftRadius: 24,
-          borderBottomRightRadius: 24,
-        }}
-      >
-        {/* 상단 타이틀과 알림 아이콘*/}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={{ color: '#3CD070', fontSize: 18, fontWeight: 'bold', marginRight: 4 }}>⚡</Text>
-            <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: 'bold', letterSpacing: 0.5, opacity: 0.9 }}>
-              MijungE
-            </Text>
-          </View>
-          <TouchableOpacity onPress={() => router.push('/notification/list')}>
-            <Feather name="bell" size={22} color="white" style={{ opacity: 0.9 }} />
-          </TouchableOpacity>
-        </View>
-        
-        {/* 메인 타이틀 */}
-        <Text style={{ color: '#ffffff', fontSize: 25, fontWeight: 'bold' }}>
-          안녕하세요, {currentUserName}님
-        </Text>
-      </View>
+      <BrandHeader 
+        title={`안녕하세요, ${currentUserName}님`} 
+        rightIcon="bell" 
+        onRightPress={() => router.push('/notification/list')} 
+      />
 
       {/* 메인 뷰포트 - 분리된 홈 컴포넌트 렌더링 영역 */}
       <ScrollView
