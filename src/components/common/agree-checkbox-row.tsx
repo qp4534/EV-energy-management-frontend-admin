@@ -77,13 +77,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkboxChecked: {
-    backgroundColor: Brand.primary,
-    borderColor: Brand.primary,
+    backgroundColor: Brand.card,
+    borderColor: Brand.primaryDark,
   },
   label: {
     flex: 1,
     fontSize: 14,
-    color: Brand.text,
+    color: Brand.primaryDark,
   },
   labelBold: {
     fontWeight: '700',

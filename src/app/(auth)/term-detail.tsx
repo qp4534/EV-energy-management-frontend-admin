@@ -131,9 +131,13 @@ export default function TermDetailScreen() {
 
         <ScrollView style={styles.scrollArea} contentContainerStyle={styles.scrollContent}>
           <View style={styles.noticeRow}>
-            {content.required && (
+            {content.required ? (
               <View style={styles.requiredPill}>
                 <Text style={styles.requiredPillText}>필수</Text>
+              </View>
+            ) : (
+              <View style={styles.optionalPill}>
+                <Text style={styles.optionalPillText}>선택</Text>
               </View>
             )}
             <View style={styles.agreedAtPill}>
@@ -289,6 +293,17 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
     color: Brand.warningText,
+  },
+  optionalPill: {
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: Brand.successBg,
+  },
+  optionalPillText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: Brand.successText,
   },
   agreedAtPill: {
     flexDirection: 'row',

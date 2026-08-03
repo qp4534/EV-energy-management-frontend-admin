@@ -1,10 +1,4 @@
-export type TermKey =
-  | 'service'
-  | 'age'
-  | 'privacy'
-  | 'location'
-  | 'vehicleData'
-  | 'thermalCamera';
+export type TermKey = 'age' | 'service' | 'privacy' | 'location';
 
 export type TermIcon = 'flame' | 'battery' | 'location' | 'plus';
 
@@ -34,17 +28,38 @@ export type TermContent = {
   tabLabel: string;
   title: string;
   required: boolean;
+  hasDetail: boolean;
   agreedAtNotice: string;
   sections: TermSection[];
 };
 
 export const TERMS: TermContent[] = [
   {
+    key: 'age',
+    label: '[필수] 만 14세 이상입니다',
+    tabLabel: '만 14세 확인',
+    title: '만 14세 이상 확인',
+    required: true,
+    hasDetail: false,
+    agreedAtNotice: '동의 시점: 최초 가입',
+    sections: [
+      {
+        type: 'paragraph',
+        body: '본 서비스는 만 14세 미만 아동의 개인정보를 수집하지 않습니다. 이용자는 본인이 만 14세 이상임을 확인하며, 허위로 확인한 경우 발생하는 불이익에 대해 회사는 책임지지 않습니다.',
+      },
+      {
+        type: 'paragraph',
+        body: '만 14세 미만인 경우 서비스 가입이 제한됩니다.',
+      },
+    ],
+  },
+  {
     key: 'service',
     label: '[필수] 서비스 이용약관 동의',
     tabLabel: '서비스 이용약관',
     title: '서비스 이용약관 동의',
     required: true,
+    hasDetail: true,
     agreedAtNotice: '동의 시점: 최초 가입',
     sections: [
       {
@@ -86,29 +101,12 @@ export const TERMS: TermContent[] = [
     ],
   },
   {
-    key: 'age',
-    label: '[필수] 만 14세 이상입니다',
-    tabLabel: '만 14세 확인',
-    title: '만 14세 이상 확인',
-    required: true,
-    agreedAtNotice: '동의 시점: 최초 가입',
-    sections: [
-      {
-        type: 'paragraph',
-        body: '본 서비스는 만 14세 미만 아동의 개인정보를 수집하지 않습니다. 이용자는 본인이 만 14세 이상임을 확인하며, 허위로 확인한 경우 발생하는 불이익에 대해 회사는 책임지지 않습니다.',
-      },
-      {
-        type: 'paragraph',
-        body: '만 14세 미만인 경우 서비스 가입이 제한됩니다.',
-      },
-    ],
-  },
-  {
     key: 'privacy',
     label: '[필수] 개인정보 수집 및 이용 동의',
     tabLabel: '개인정보 수집',
     title: '개인정보 수집 및 이용 동의',
     required: true,
+    hasDetail: true,
     agreedAtNotice: '동의 시점: 최초 가입',
     sections: [
       {
@@ -130,10 +128,11 @@ export const TERMS: TermContent[] = [
   },
   {
     key: 'location',
-    label: '[필수] 위치기반서비스 이용약관',
+    label: '[선택] 위치기반서비스 이용약관',
     tabLabel: '위치기반서비스',
     title: '위치기반서비스 이용약관',
-    required: true,
+    required: false,
+    hasDetail: true,
     agreedAtNotice: '동의 시점: 최초 가입',
     sections: [
       {
@@ -168,71 +167,6 @@ export const TERMS: TermContent[] = [
         heading: '제5조',
         title: '이용자의 권리',
         body: '이용자는 위치정보 수집에 대한 동의를 언제든지 철회할 수 있으며, 이 경우 위치 기반 기능(충전소 안내 등) 이용이 제한될 수 있습니다.',
-      },
-    ],
-  },
-  {
-    key: 'vehicleData',
-    label: '[필수] 차량배터리 진단정보 수집·이용 동의',
-    tabLabel: '차량·배터리 진단',
-    title: '차량·배터리 진단정보 수집·이용 동의',
-    required: true,
-    agreedAtNotice: '동의 시점: 최초 가입',
-    sections: [
-      {
-        type: 'table',
-        rows: [
-          {
-            label: '수집 목적',
-            value: '배터리 건강 상태(SOH) 및 잔존수명(RUL) 예측, 디지털 배터리 여권 발급, 이상 징후 알림 제공',
-          },
-          {
-            label: '수집 항목',
-            value: '차량 정보(모델명, 차량 번호), 배터리 온도·전압·전류, 충전 이력, 주행 데이터',
-          },
-          { label: '보유 및 이용 기간', value: '회원 탈퇴 시까지, 또는 차량 등록 해제 시까지' },
-          {
-            label: '제3자 제공 여부',
-            value: '원칙적으로 제공하지 않으며, 향후 정비소 연계 등 필요 시 별도 동의를 받습니다.',
-          },
-          {
-            label: '동의 거부 권리',
-            value: '필수 항목으로, 미동의 시 배터리 진단 및 화재 예방 핵심 기능 이용이 제한됩니다.',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    key: 'thermalCamera',
-    label: '[필수] 열화상 카메라 영상정보 수집·이용 동의',
-    tabLabel: '열화상 카메라',
-    title: '열화상 카메라 영상정보 수집·이용 동의',
-    required: true,
-    agreedAtNotice: '동의 시점: 최초 가입',
-    sections: [
-      {
-        type: 'table',
-        rows: [
-          {
-            label: '수집 목적',
-            value: '열화상 이미지 기반 이상 발열·화재 위험 감지 및 4단계 경보(정상/주의/경고/긴급) 제공',
-          },
-          { label: '수집 항목', value: '열화상 카메라 촬영 이미지(비식별 온도 분포 데이터)' },
-          {
-            label: '처리 방식',
-            value: 'AI 모델(YOLOv8 기반)이 자동 분석하며, 사람이 영상을 직접 열람하지 않는 것을 원칙으로 합니다.',
-          },
-          {
-            label: '보유 및 이용 기간',
-            value:
-              '이상 징후 미감지 시 단기간(예: 24~48시간) 내 자동 삭제, 이상 감지 시 사고 원인 분석을 위해 별도 기간 보관',
-          },
-          {
-            label: '동의 거부 권리',
-            value: '필수 항목으로, 미동의 시 화재 예방 서비스의 핵심 기능인 이상 감지·알림을 제공할 수 없습니다.',
-          },
-        ],
       },
     ],
   },
