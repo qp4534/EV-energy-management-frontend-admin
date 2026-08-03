@@ -35,10 +35,14 @@ export async function confirmVerificationCode(
   return mockDelay({ verified: true });
 }
 
-export async function findId(name: string, email: string): Promise<FindIdResult> {
-  const [localPart, domain] = email.split('@');
-  const maskedLocal = `${localPart.slice(0, 2)}${'*'.repeat(Math.max(localPart.length - 2, 0))}`;
-  return mockDelay({ maskedId: `${maskedLocal}@${domain}`, joinedAt: '2025-11-02' });
+export async function findId(name: string, birthDate: string, phone: string): Promise<FindIdResult> {
+  const localPart = name.toLowerCase().replace(/\s/g, '') || 'user';
+  return mockDelay({ maskedId: `${maskLeading(localPart, 3)}@mijunge.com`, joinedAt: '2025-11-02' });
+}
+
+function maskLeading(value: string, maxVisible: number): string {
+  const visibleCount = Math.min(maxVisible, value.length);
+  return `${value.slice(0, visibleCount)}${'*'.repeat(value.length - visibleCount)}`;
 }
 
 export async function resetPassword(
