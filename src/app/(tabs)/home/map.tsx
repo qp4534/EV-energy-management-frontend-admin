@@ -1,10 +1,11 @@
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Platform, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, StatusBar, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { getNearbyChargers } from '@/api/charger';
+import { BrandHeader } from '@/components/common/brand-header';
 import ChargerMap from '@/components/home/ChargerMap';
 import StationBottomSheet from '@/components/home/StationBottomSheet';
 import { Charger } from '@/types/charger';
@@ -107,19 +108,10 @@ export default function MapScreen() {
     <View style={{ flex: 1, backgroundColor: '#E2EFE0' }}>
       <StatusBar barStyle="light-content" />
 
-      {/* 헤더 바 */}
-      <View style={{ backgroundColor: '#113B29', paddingTop: 55, paddingBottom: 25, paddingHorizontal: 24, borderBottomLeftRadius: 24, borderBottomRightRadius: 24, zIndex: 10 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-          <Text style={{ color: '#3CD070', fontSize: 18, fontWeight: 'bold', marginRight: 4 }}>⚡</Text>
-          <Text style={{ color: '#ffffff', fontSize: 15, fontWeight: 'bold' }}>MijungE</Text>
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 6, marginLeft: -6 }}>
-            <Ionicons name="chevron-back" size={26} color="white" />
-          </TouchableOpacity>
-          <Text style={{ color: '#ffffff', fontSize: 25, fontWeight: 'bold' }}>충전소 위치 찾기</Text>
-        </View>
-      </View>
+      <BrandHeader 
+        title="충전소 위치 찾기" 
+        showBack 
+      />
 
       {/* 맵 콘텐츠 바디 */}
       <View style={{ flex: 1, position: 'relative' }}>
