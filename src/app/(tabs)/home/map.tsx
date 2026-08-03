@@ -1,10 +1,24 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, ScrollView, StatusBar, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { getNearbyChargers } from '@/api/charger';
 import { Charger } from '@/types/charger';
+
+// 웹 브라우저 튕김 방지용 네이티브 지도 동적 컴포넌트 처리
+let MapView: any = View;
+let Marker: any = View;
+if (Platform.OS !== 'web') {
+  try {
+    const Maps = require('react-native-maps');
+    MapView = Maps.default;
+    Marker = Maps.Marker;
+  } catch (e) {
+    console.error('네이티브 지도 라이브러리를 로드하지 못했습니다.', e);
+  }
+}
+
 
 export default function MapScreen() {
   const router = useRouter();
@@ -32,12 +46,33 @@ export default function MapScreen() {
   }, []);
 
   // 🔍 검색 실행 함수
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!searchQuery.trim()) {
       Alert.alert('알림', '검색어를 입력해주세요.');
       return;
     }
-    Alert.alert('검색 시뮬레이션', `'${searchQuery}' 검색 결과 화면으로 이동하거나 데이터를 필터링합니다.`);
+    try {
+      // 1. 우선 목데이터 API에서 전체 목록을 다시 긁어옵니다.
+      const allStations = await getNearbyChargers();
+
+      // 2. 유저가 입력한 검색어(예: 강남역)가 이름에 포함된 데이터만 쏙 필터링합니다.
+      const filtered = allStations.filter(station => 
+        station.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+      );
+
+      // 3. 필터링된 결과로 화면 리스트를 갱신합니다.
+      setStations(filtered);
+
+      // 4. 만약 검색 결과가 하나도 없다면 알림을 띄워줍니다.
+      if (filtered.length === 0) {
+        Alert.alert('검색 결과', '해당하는 충전소가 없습니다.');
+      } 
+  
+    } catch (error) {
+      Alert.alert('오류', '검색 결과를 가져오지 못했습니다.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -81,22 +116,42 @@ export default function MapScreen() {
             1. npm i react-native-maps 설치
             2. import MapView, { Marker } from 'react-native-maps';
             3. 아래 View를 <MapView> 컴포넌트로 교체하면 진짜 지도가 뜹니다.
+            4. npx expo install expo-location 설치 -> 위치 권한 요청 후 현재 위치 기반으로 지도 중심 이동 가능
         */}
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#E2EFE0', justifyContent: 'center', alignItems: 'center' }}>
-          <Feather name="map" size={64} color="#A3C9A8" style={{ opacity: 0.5 }} />
-          <Text style={{ color: '#7FA885', fontSize: 12, marginTop: 8 }}>[ react-native-maps 지도 연동 영역 ]</Text>
-          
-          {/* 지도 위 마커들 예시 (📍 위치) */}
-          <View style={{ position: 'absolute', top: '30%', left: '40%', backgroundColor: '#113B29', padding: 6, borderRadius: 20 }}>
-            <Feather name="zap" size={14} color="#3CD070" />
+
+        {/* 웹/모바일 분기 렌더링, 실제 지도 MapView와 마커로 교체 */}
+        {Platform.OS === 'web' ? (
+          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#E2EFE0', justifyContent: 'center', alignItems: 'center' }}>
+            <Feather name="map" size={64} color="#A3C9A8" style={{ opacity: 0.5 }} />
+            <Text style={{ color: '#7FA885', fontSize: 13, marginTop: 12, fontWeight: 'bold' }}>
+              모바일 기기(Expo Go)에서 지도가 표시됩니다.
+            </Text>
           </View>
-          <View style={{ position: 'absolute', top: '50%', left: '60%', backgroundColor: '#113B29', padding: 6, borderRadius: 20 }}>
-            <Feather name="zap" size={14} color="#3CD070" />
-          </View>
-          
-          {/* 사용자 현재 위치 */}
-          <View style={{ position: 'absolute', top: '65%', left: '25%', width: 20, height: 20, backgroundColor: '#FF6B6B', borderRadius: 10, borderWidth: 3, borderColor: 'white' }} />
-        </View>
+        ) : (
+          <MapView
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+            // 처음 지도가 켜졌을 때 보여줄 중심 위치 (강남역기준)
+            initialRegion={{
+              latitude: 37.4979,
+              longitude: 127.0276,
+              latitudeDelta: 0.02,
+              longitudeDelta: 0.02
+            }}
+          >
+            {stations.map((station) => (
+              <Marker
+                key={station.id}
+                coordinate={{ 
+                  latitude: station.latitude, 
+                  longitude: station.longitude 
+                }}
+                title={station.name}
+                description={station.isAvailable ? '이용 가능' : '이용 불가'}
+                pinColor={station.isAvailable ? '#3CD070' : '#FF924A'}
+              />
+            ))}
+          </MapView>
+        )}
 
         {/* 🔍 검색 바 */}
         <View 
