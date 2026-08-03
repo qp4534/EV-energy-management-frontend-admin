@@ -4,4 +4,6 @@ export type Charger = {
   address: string;
   distanceKm: number;
   isAvailable: boolean;
+  latitude: number; // 위도
+  longitude: number; // 경도
 };
