@@ -1,7 +1,11 @@
-import { mockDelay } from '@/api/client';
+import { apiClient, mockDelay, USE_MOCK } from '@/api/client';
 import { Notification } from '@/types/notification';
 
 export async function getNotifications(): Promise<Notification[]> {
+  if (!USE_MOCK) {
+    const { data } = await apiClient.get<Notification[]>('/notifications');
+    return data;
+  }
   return mockDelay([
     {
       id: 'n1',
@@ -25,6 +29,10 @@ export async function getNotifications(): Promise<Notification[]> {
 }
 
 export async function getNotification(id: string): Promise<Notification> {
+  if (!USE_MOCK) {
+    const { data } = await apiClient.get<Notification>(`/notifications/${id}`);
+    return data;
+  }
   const list = await getNotifications();
   return list.find((item) => item.id === id) ?? list[0];
 }
