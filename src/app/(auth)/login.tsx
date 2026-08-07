@@ -6,12 +6,38 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BrandInput } from '@/components/common/brand-input';
 import { BrandMark } from '@/components/common/brand-mark';
 import { Brand } from '@/constants/theme';
-import { useAuth } from '@/hooks/use-auth';
+import { AccountLockedError, InvalidCredentialsError, useAuth } from '@/hooks/use-auth';
 
 export default function LoginScreen() {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [locked, setLocked] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleLogin = async () => {
+    setSubmitting(true);
+    try {
+      await login({ email, password });
+      setErrorMessage(null);
+      setLocked(false);
+    } catch (error) {
+      if (error instanceof AccountLockedError) {
+        setLocked(true);
+        setErrorMessage('비밀번호를 5회 잘못 입력하여 계정이 잠겼습니다. 비밀번호 재설정 후 다시 로그인해주세요.');
+      } else if (error instanceof InvalidCredentialsError) {
+        setLocked(false);
+        setErrorMessage(
+          `이메일 또는 비밀번호가 올바르지 않습니다. (${error.attemptsRemaining}회 남음)`
+        );
+      } else {
+        setErrorMessage('로그인에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -29,7 +55,7 @@ export default function LoginScreen() {
             <Text style={styles.title}>Login</Text>
 
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>이메일</Text>
+              <Text style={styles.fieldLabel}>아이디</Text>
               <BrandInput
                 icon="envelope"
                 value={email}
@@ -61,7 +87,21 @@ export default function LoginScreen() {
               </Pressable>
             </View>
 
-            <Pressable style={styles.loginButton} onPress={() => login({ email, password })}>
+            {errorMessage && (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorText}>{errorMessage}</Text>
+                {locked && (
+                  <Pressable onPress={() => router.push('/reset-pw')}>
+                    <Text style={styles.errorLinkText}>비밀번호 재설정하러 가기</Text>
+                  </Pressable>
+                )}
+              </View>
+            )}
+
+            <Pressable
+              style={[styles.loginButton, (locked || submitting) && styles.loginButtonDisabled]}
+              onPress={handleLogin}
+              disabled={locked || submitting}>
               <Text style={styles.loginButtonText}>Login</Text>
             </Pressable>
 
@@ -150,12 +190,34 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Brand.border,
   },
+  errorBox: {
+    borderRadius: 12,
+    backgroundColor: Brand.warningBg,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 6,
+    marginTop: -4,
+  },
+  errorText: {
+    fontSize: 12,
+    lineHeight: 18,
+    color: Brand.warningText,
+  },
+  errorLinkText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Brand.warningText,
+    textDecorationLine: 'underline',
+  },
   loginButton: {
     borderRadius: 20,
     backgroundColor: Brand.primary,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 8,
+  },
+  loginButtonDisabled: {
+    opacity: 0.5,
   },
   loginButtonText: {
     fontSize: 17,

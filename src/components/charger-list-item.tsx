@@ -1,32 +1,86 @@
-import { StyleSheet } from 'react-native';
-
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
 import { Charger } from '@/types/charger';
+import { StyleSheet, View } from 'react-native';
 
 type ChargerListItemProps = {
   charger: Charger;
+  isLast?: boolean; // 하단 테두리 분기용 추가
 };
 
-export function ChargerListItem({ charger }: ChargerListItemProps) {
+export function ChargerListItem({ charger, isLast }: ChargerListItemProps) {
+  const isAvailable = charger.isAvailable;
+  const statusText = isAvailable ? '이용가능' : '이용불가';
+  const displayDistance = charger.distanceKm ? `${charger.distanceKm} km` : '0 km';
+
   return (
-    <ThemedView type="backgroundElement" style={styles.container}>
-      <ThemedText type="smallBold">{charger.name}</ThemedText>
-      <ThemedText type="small" themeColor="textSecondary">
-        {charger.address} · {charger.distanceKm}km
-      </ThemedText>
-      <ThemedText type="small" themeColor={charger.isAvailable ? 'text' : 'textSecondary'}>
-        {charger.isAvailable ? '이용 가능' : '이용 불가'}
-      </ThemedText>
-    </ThemedView>
+    <View 
+      style={[
+        styles.rowContainer,
+        { 
+          borderBottomWidth: isLast ? 0 : 1, 
+          borderBottomColor: '#EEF2EE',
+        }
+      ]}
+    >
+      {/* 🟢 좌측: 충전소 정보 영역 */}
+      <View style={styles.infoArea}>
+        <ThemedText style={styles.stationName}>
+          {charger.name}
+        </ThemedText>
+        <ThemedText style={styles.stationSub}>
+          {displayDistance}, {charger.address || '급속 1기'}
+        </ThemedText>
+      </View>
+
+      {/* 🟢 우측: 이용 가능 여부 둥근 배지 태그 */}
+      <View 
+        style={[
+          styles.badge, 
+          { backgroundColor: isAvailable ? '#EDF4D9' : '#FFE3D1' }
+        ]}
+      >
+        <ThemedText 
+          style={[
+            styles.badgeText, 
+            { color: isAvailable ? '#4F6128' : '#FF924A' }
+          ]}
+        >
+          {statusText}
+        </ThemedText>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    borderRadius: Spacing.three,
-    padding: Spacing.three,
-    gap: Spacing.half,
+  rowContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 14,
+    marginBottom: 14,
+  },
+  infoArea: {
+    flex: 1,
+    marginRight: 8,
+  },
+  stationName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#4A6B53',
+    marginBottom: 6,
+  },
+  stationSub: {
+    fontSize: 12,
+    color: '#999999',
+  },
+  badge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });

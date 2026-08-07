@@ -1,9 +1,9 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { BrandInput } from '@/components/common/brand-input';
+import { DateSelectRow } from '@/components/common/date-select-row';
 import { Header } from '@/components/common/header';
 import { ResultPanel } from '@/components/common/result-panel';
-import { VerifyField } from '@/components/common/verify-field';
 import { Brand } from '@/constants/theme';
 import { useFindId } from '@/hooks/use-find-id';
 
@@ -11,14 +11,10 @@ export default function FindIdScreen() {
   const {
     name,
     setName,
-    email,
-    setEmail,
-    codeRequested,
-    code,
-    setCode,
-    codeConfirmed,
-    requestCode,
-    confirmCode,
+    birthDate,
+    setBirthDate,
+    phone,
+    setPhone,
     canSubmit,
     submitting,
     submit,
@@ -50,7 +46,9 @@ export default function FindIdScreen() {
           </ResultPanel>
         ) : (
           <View style={styles.card}>
-            <Text style={styles.description}>가입 시 등록한 이름과 이메일을 입력해주세요.</Text>
+            <Text style={styles.description}>
+              가입 시 등록한 이름과 생년월일, 전화번호를 입력해주세요.
+            </Text>
 
             <View style={styles.field}>
               <Text style={styles.fieldLabel}>이름</Text>
@@ -58,16 +56,22 @@ export default function FindIdScreen() {
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>이메일</Text>
-              <VerifyField
-                email={email}
-                onEmailChange={setEmail}
-                onRequestCode={requestCode}
-                requested={codeRequested}
-                code={code}
-                onCodeChange={setCode}
-                onConfirmCode={confirmCode}
-                confirmed={codeConfirmed}
+              <Text style={styles.fieldLabel}>생년월일</Text>
+              <DateSelectRow
+                year={birthDate.year}
+                month={birthDate.month}
+                day={birthDate.day}
+                onChange={setBirthDate}
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>전화번호</Text>
+              <BrandInput
+                value={phone}
+                onChangeText={setPhone}
+                placeholder="전화번호 입력"
+                keyboardType="phone-pad"
               />
             </View>
 
