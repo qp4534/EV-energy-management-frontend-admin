@@ -12,20 +12,29 @@ export default function AppTabs() {
       backgroundColor={colors.background}
       indicatorColor={colors.backgroundElement}
       labelStyle={{ selected: { color: colors.text } }}>
-      <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
-          renderingMode="template"
-        />
+      <NativeTabs.Trigger name="home">
+        <NativeTabs.Trigger.Label>홈</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="house.fill" />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="explore">
-        <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
-        />
+      <NativeTabs.Trigger name="vehicle">
+        <NativeTabs.Trigger.Label>차량</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="car.fill" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="battery-passport">
+        <NativeTabs.Trigger.Label>배터리 여권</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="battery.100" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="guide-chat">
+        <NativeTabs.Trigger.Label>충전 가이드</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="bubble.left.and.bubble.right.fill" />
+      </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="mypage">
+        <NativeTabs.Trigger.Label>마이페이지</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="person.fill" />
       </NativeTabs.Trigger>
     </NativeTabs>
   );
