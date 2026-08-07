@@ -116,12 +116,18 @@ export default function LoginScreen() {
 
         <View style={styles.footerLinkRow}>
           <Pressable
-            onPress={() => router.push({ pathname: '/term-detail', params: { key: 'service', mode: 'view' } })}>
-            <Text style={styles.footerLinkText}>이용약관</Text>
+            onPress={() => router.push({ pathname: '/term-detail', params: { key: 'privacy', mode: 'view' } })}>
+            <Text style={styles.footerLinkText}>개인정보처리방침</Text>
           </Pressable>
           <Text style={styles.footerLinkDivider}>|</Text>
-          <Pressable onPress={() => router.push('/privacy-policy')}>
-            <Text style={styles.footerLinkText}>개인정보 처리방침</Text>
+          <Pressable
+            onPress={() => router.push({ pathname: '/term-detail', params: { key: 'service', mode: 'view' } })}>
+            <Text style={styles.footerLinkText}>서비스 이용약관</Text>
+          </Pressable>
+          <Text style={styles.footerLinkDivider}>|</Text>
+          <Pressable
+            onPress={() => router.push({ pathname: '/term-detail', params: { key: 'location', mode: 'view' } })}>
+            <Text style={styles.footerLinkText}>위치기반서비스 이용약관</Text>
           </Pressable>
         </View>
         <Text style={styles.footer}>@EV energy resource management platform</Text>
@@ -251,10 +257,13 @@ const styles = StyleSheet.create({
   },
   footerLinkRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
     paddingTop: 18,
+    paddingHorizontal: 16,
+    marginBottom: 2,
   },
   footerLinkText: {
     fontSize: 12,
