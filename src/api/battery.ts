@@ -1,7 +1,13 @@
-import { mockDelay } from '@/api/client';
+import { apiClient, mockDelay, USE_MOCK } from '@/api/client';
 import { BatteryPassport } from '@/types/battery';
 
 export async function getBatteryPassport(vehicleId: string): Promise<BatteryPassport> {
+  if (!USE_MOCK) {
+    const { data } = await apiClient.get<BatteryPassport>(
+      `/vehicles/${vehicleId}/battery-passport`
+    );
+    return data;
+  }
   return mockDelay({
     vehicleId,
     soh: 90,

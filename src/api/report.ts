@@ -1,7 +1,11 @@
-import { mockDelay } from '@/api/client';
+import { apiClient, mockDelay, USE_MOCK } from '@/api/client';
 import { Report } from '@/types/report';
 
 export async function getReports(): Promise<Report[]> {
+  if (!USE_MOCK) {
+    const { data } = await apiClient.get<Report[]>('/reports');
+    return data;
+  }
   return mockDelay([
     {
       id: 'r1',

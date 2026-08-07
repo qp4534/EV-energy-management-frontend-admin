@@ -2,6 +2,9 @@ import axios from 'axios';
 
 import { useAuthStore } from '@/store/auth-store';
 
+/** 'false'로 설정하면 목업 대신 EXPO_PUBLIC_API_URL로 실제 API를 호출한다. 기본값은 true(목업). */
+export const USE_MOCK = process.env.EXPO_PUBLIC_USE_MOCK !== 'false';
+
 export const apiClient = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_URL ?? 'https://api.example.com',
 });
