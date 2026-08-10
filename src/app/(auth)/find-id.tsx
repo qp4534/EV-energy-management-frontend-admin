@@ -17,6 +17,7 @@ export default function FindIdScreen() {
     setPhone,
     canSubmit,
     submitting,
+    submitError,
     submit,
     result,
     goToLogin,
@@ -75,6 +76,8 @@ export default function FindIdScreen() {
               />
             </View>
 
+            {submitError && <Text style={styles.errorText}>{submitError}</Text>}
+
             <Pressable
               style={[styles.submitButton, (!canSubmit || submitting) && styles.submitButtonDisabled]}
               onPress={submit}
@@ -121,6 +124,11 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 13,
     color: Brand.label,
+  },
+  errorText: {
+    fontSize: 13,
+    color: '#D32F2F',
+    textAlign: 'center',
   },
   submitButton: {
     borderRadius: 999,

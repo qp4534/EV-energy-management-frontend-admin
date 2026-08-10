@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Brand } from '@/constants/theme';
 
@@ -11,6 +11,10 @@ type VerifyFieldProps = {
   onCodeChange: (value: string) => void;
   onConfirmCode: () => void;
   confirmed: boolean;
+  sending?: boolean;
+  confirming?: boolean;
+  requestError?: string | null;
+  confirmError?: string | null;
 };
 
 export function VerifyField({
@@ -22,6 +26,10 @@ export function VerifyField({
   onCodeChange,
   onConfirmCode,
   confirmed,
+  sending = false,
+  confirming = false,
+  requestError,
+  confirmError,
 }: VerifyFieldProps) {
   return (
     <View style={styles.container}>
@@ -36,10 +44,15 @@ export function VerifyField({
           autoCapitalize="none"
           editable={!confirmed}
         />
-        <Pressable onPress={onRequestCode} style={styles.pillButton} disabled={confirmed}>
-          <Text style={styles.pillButtonText}>{requested ? '재요청' : '인증 요청'}</Text>
+        <Pressable onPress={onRequestCode} style={styles.pillButton} disabled={confirmed || sending}>
+          {sending ? (
+            <ActivityIndicator size="small" color={Brand.primaryDark} />
+          ) : (
+            <Text style={styles.pillButtonText}>{requested ? '재요청' : '인증 요청'}</Text>
+          )}
         </Pressable>
       </View>
+      {requestError && <Text style={styles.errorText}>{requestError}</Text>}
 
       {requested && (
         <View style={styles.row}>
@@ -51,11 +64,16 @@ export function VerifyField({
             placeholderTextColor={Brand.textMuted}
             editable={!confirmed}
           />
-          <Pressable onPress={onConfirmCode} style={styles.pillButton} disabled={confirmed}>
-            <Text style={styles.pillButtonText}>{confirmed ? '확인 완료' : '확인'}</Text>
+          <Pressable onPress={onConfirmCode} style={styles.pillButton} disabled={confirmed || confirming}>
+            {confirming ? (
+              <ActivityIndicator size="small" color={Brand.primaryDark} />
+            ) : (
+              <Text style={styles.pillButtonText}>{confirmed ? '확인 완료' : '확인'}</Text>
+            )}
           </Pressable>
         </View>
       )}
+      {confirmError && <Text style={styles.errorText}>{confirmError}</Text>}
     </View>
   );
 }
@@ -90,5 +108,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: Brand.primaryDark,
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#D32F2F',
   },
 });

@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import * as authApi from '@/api/auth';
 import { FindIdResult } from '@/types/auth';
+import { getErrorMessage } from '@/utils/error-message';
 
 type BirthDate = { year: number | null; month: number | null; day: number | null };
 
@@ -12,6 +13,7 @@ export function useFindId() {
   const [phone, setPhone] = useState('');
   const [result, setResult] = useState<FindIdResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const canSubmit =
     name.length > 0 &&
@@ -24,6 +26,7 @@ export function useFindId() {
     if (!canSubmit || !birthDate.year || !birthDate.month || !birthDate.day) return;
 
     setSubmitting(true);
+    setSubmitError(null);
     try {
       const found = await authApi.findId(
         name,
@@ -33,6 +36,8 @@ export function useFindId() {
         phone
       );
       setResult(found);
+    } catch (error) {
+      setSubmitError(getErrorMessage(error, '일치하는 계정을 찾을 수 없습니다.'));
     } finally {
       setSubmitting(false);
     }
@@ -50,6 +55,7 @@ export function useFindId() {
     setPhone,
     canSubmit,
     submitting,
+    submitError,
     submit,
     result,
     goToLogin,

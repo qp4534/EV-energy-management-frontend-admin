@@ -22,6 +22,10 @@ export default function SignupInfoScreen() {
     codeConfirmed,
     requestCode,
     confirmCode,
+    sendingCode,
+    confirmingCode,
+    codeRequestError,
+    codeConfirmError,
     password,
     setPassword,
     passwordConfirm,
@@ -32,6 +36,7 @@ export default function SignupInfoScreen() {
     setPhone,
     canSubmit,
     submitting,
+    submitError,
     submit,
   } = useSignupInfo();
 
@@ -70,6 +75,10 @@ export default function SignupInfoScreen() {
                 onCodeChange={setCode}
                 onConfirmCode={confirmCode}
                 confirmed={codeConfirmed}
+                sending={sendingCode}
+                confirming={confirmingCode}
+                requestError={codeRequestError}
+                confirmError={codeConfirmError}
               />
             </View>
 
@@ -112,6 +121,8 @@ export default function SignupInfoScreen() {
                 keyboardType="phone-pad"
               />
             </View>
+
+            {submitError && <Text style={styles.errorText}>{submitError}</Text>}
 
             <Pressable
               style={[styles.submitButton, (!canSubmit || submitting) && styles.submitButtonDisabled]}
@@ -172,6 +183,11 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 13,
     color: Brand.textMuted,
+  },
+  errorText: {
+    fontSize: 13,
+    color: '#D32F2F',
+    textAlign: 'center',
   },
   submitButton: {
     borderRadius: 999,

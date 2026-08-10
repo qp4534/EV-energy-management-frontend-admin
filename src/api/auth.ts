@@ -7,8 +7,10 @@ const MOCK_TEST_EMAIL = 'test@test.com';
 const MOCK_TEST_PASSWORD = '1234';
 
 // 이 앱은 차량 소유주 전용 앱이라 회원가입/아이디찾기 시 백엔드에 항상 이 role로 보낸다.
-// 백엔드 UserEntity.role은 자유 문자열이며 "관리자"만 특별 취급되고 나머지는 일반 권한으로 처리된다.
-const USER_ROLE = '차주';
+// DB의 CK_USER_ROLE 체크 제약조건이 '이용자'/'관제자'/'관리자' 세 값만 허용한다(schema.sql엔
+// 없고 실제 RDS에만 걸려있는 제약이라 여기 남겨둔다). "관리자"만 AuthService에서 특별 취급되고
+// 나머지는 일반 권한으로 처리된다.
+const USER_ROLE = '이용자';
 
 type BackendMeResponse = {
   userId: string;
@@ -58,7 +60,7 @@ export async function login(request: LoginRequest): Promise<LoginResponse> {
     request.password !== MOCK_TEST_PASSWORD
   ) {
     await mockDelay(null);
-    throw new Error('INVALID_CREDENTIALS');
+    throw new Error('이메일 또는 비밀번호가 올바르지 않습니다.');
   }
 
   return mockDelay({
