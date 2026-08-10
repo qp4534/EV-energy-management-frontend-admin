@@ -21,12 +21,14 @@ type BackendMeResponse = {
 type BackendMeDetail = BackendMeResponse & {
   phone: string | null;
   pushEnabled: boolean | null;
+  profileImageUrl: string | null;
 };
 
 type ProfileUpdatePayload = {
   name?: string;
   phone?: string;
   pushEnabled?: boolean;
+  profileImageUrl?: string;
   currentPassword?: string;
   newPassword?: string;
 };
@@ -38,6 +40,7 @@ function toUserWithPhone(dto: BackendMeDetail): User {
     email: dto.email,
     phone: dto.phone ?? undefined,
     pushEnabled: dto.pushEnabled ?? undefined,
+    profileImageUrl: dto.profileImageUrl ?? undefined,
   };
 }
 
@@ -163,6 +166,7 @@ export async function getMe(): Promise<User> {
     email: current?.email ?? 'test@test.com',
     phone: current?.phone ?? '010-1234-5678',
     pushEnabled: current?.pushEnabled ?? true,
+    profileImageUrl: current?.profileImageUrl,
   });
 }
 
@@ -178,7 +182,45 @@ export async function updateProfile(payload: ProfileUpdatePayload): Promise<User
     email: current?.email ?? 'test@test.com',
     phone: payload.phone ?? current?.phone ?? '010-1234-5678',
     pushEnabled: payload.pushEnabled ?? current?.pushEnabled ?? true,
+    profileImageUrl: payload.profileImageUrl ?? current?.profileImageUrl,
   });
+}
+
+// 프로필 사진을 S3에 올리고, 저장용 공개 URL을 반환한다. 실제 파일 바이트는 백엔드를 거치지 않고
+// 발급받은 presigned URL로 클라이언트가 S3에 직접 PUT한다 (Authorization 헤더가 붙으면 S3가
+// 서명 불일치로 거부하므로 apiClient가 아닌 순수 fetch를 사용).
+function guessImageContentType(uri: string): string {
+  const ext = uri.split('.').pop()?.toLowerCase();
+  if (ext === 'png') return 'image/png';
+  if (ext === 'webp') return 'image/webp';
+  return 'image/jpeg';
+}
+
+export async function uploadProfileImage(localUri: string, mimeType?: string | null): Promise<string> {
+  if (USE_MOCK) {
+    return mockDelay(localUri);
+  }
+  // expo-image-picker가 mimeType을 못 주는 경우(플랫폼/버전에 따라 null일 수 있음)엔 확장자로 추정.
+  const contentType = mimeType ?? guessImageContentType(localUri);
+  const { data } = await apiClient.post<{ uploadUrl: string; imageUrl: string }>(
+    '/api/auth/me/profile-image/upload-url',
+    { contentType }
+  );
+
+  const file = await fetch(localUri);
+  const blob = await file.blob();
+  const uploadResponse = await fetch(data.uploadUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': contentType },
+    body: blob,
+  });
+  if (!uploadResponse.ok) {
+    // fetch는 4xx/5xx에도 정상적으로 resolve하므로, 상태 코드를 직접 확인하지 않으면
+    // S3 업로드가 실패해도 모르고 넘어가서 존재하지 않는 URL을 프로필에 저장하게 된다.
+    throw new Error(`S3 업로드 실패 (${uploadResponse.status})`);
+  }
+
+  return data.imageUrl;
 }
 
 // DELETE/POST 요청 모두 axios 인터셉터가 Authorization 헤더를 자동으로 붙여준다.
