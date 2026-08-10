@@ -41,7 +41,7 @@ export default function FindIdScreen() {
             onPrimaryPress={goToLogin}
             secondaryLabel="비밀번호 재설정하기"
             onSecondaryPress={goToResetPassword}>
-            <Text style={styles.infoDate}>가입일 {result.joinedAt}</Text>
+            {result.joinedAt && <Text style={styles.infoDate}>가입일 {result.joinedAt}</Text>}
             <Text style={styles.infoId}>{result.maskedId}</Text>
           </ResultPanel>
         ) : (

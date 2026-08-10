@@ -1,10 +1,39 @@
 import { apiClient, mockDelay, USE_MOCK } from '@/api/client';
 import { Report } from '@/types/report';
 
+type BackendAiReportDto = {
+  reportId: string;
+  title: string;
+  reportData: Record<string, unknown> | null;
+  reportType: string | null;
+  createdAt: string;
+};
+
+function toReport(dto: BackendAiReportDto): Report {
+  const summaryFromData =
+    dto.reportData && typeof dto.reportData.summary === 'string'
+      ? (dto.reportData.summary as string)
+      : undefined;
+  return {
+    id: dto.reportId,
+    title: dto.title,
+    summary: summaryFromData ?? dto.reportType ?? '',
+    createdAt: dto.createdAt,
+  };
+}
+
+export async function markReportAsRead(reportId: string): Promise<void> {
+  if (!USE_MOCK) {
+    await apiClient.patch(`/api/ai-reports/${reportId}/read`);
+    return;
+  }
+  await mockDelay(undefined);
+}
+
 export async function getReports(): Promise<Report[]> {
   if (!USE_MOCK) {
-    const { data } = await apiClient.get<Report[]>('/reports');
-    return data;
+    const { data } = await apiClient.get<BackendAiReportDto[]>('/api/ai-reports');
+    return data.map(toReport);
   }
   return mockDelay([
     {

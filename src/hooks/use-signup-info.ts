@@ -2,6 +2,8 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 
 import * as authApi from '@/api/auth';
+import { TERM_KEYS } from '@/constants/terms-content';
+import { useSignupTermStore } from '@/store/signup-term-store';
 
 type BirthDate = { year: number | null; month: number | null; day: number | null };
 
@@ -16,6 +18,7 @@ export function useSignupInfo() {
   const [birthDate, setBirthDate] = useState<BirthDate>({ year: null, month: null, day: null });
   const [phone, setPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const { checked: termsChecked, reset: resetTerms } = useSignupTermStore();
 
   const requestCode = async () => {
     await authApi.requestVerificationCode(email);
@@ -50,7 +53,9 @@ export function useSignupInfo() {
           birthDate.day
         ).padStart(2, '0')}`,
         phone,
+        consentedTerms: TERM_KEYS.filter((key) => termsChecked[key]),
       });
+      resetTerms();
       router.replace('/login');
     } finally {
       setSubmitting(false);

@@ -1,40 +1,69 @@
+import * as authApi from '@/api/auth';
 import { BrandHeader } from '@/components/common/brand-header';
 import { useAuthStore } from '@/store/auth-store';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Modal, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function MyPageIndexScreen() {
   const router = useRouter();
   // Zustand 스토어에서 유저 데이터와 액션 함수 가져오기
   const { user, logout, withdraw } = useAuthStore();
-  
+
   // 알림 설정 ON/OFF 토글 상태
   const [isPushEnabled, setIsPushEnabled] = useState<boolean>(true);
 
   // 🛠️ 커스텀 모달(팝업) 제어 상태
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [modalType, setModalType] = useState<'logout' | 'deleteAccount'>('logout');
+  // 회원 탈퇴는 백엔드가 현재 비밀번호 확인을 요구한다.
+  const [withdrawPassword, setWithdrawPassword] = useState('');
+  const [withdrawError, setWithdrawError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   // 모달을 열어주는 함수
   const openModal = (type: 'logout' | 'deleteAccount') => {
     setModalType(type);
+    setWithdrawPassword('');
+    setWithdrawError('');
     setModalVisible(true);
   };
 
   // 모달에서 '확인(로그아웃/탈퇴)'을 눌렀을 때 실행될 로직
-  const handleConfirm = () => {
-    setModalVisible(false);
-    
+  const handleConfirm = async () => {
     if (modalType === 'logout') {
-      console.log('로그아웃 처리 완료');
-      logout(); // 로그아웃 처리 함수 호출
-      router.replace('/(auth)/login'); // 로그인 화면으로 이동
-    } else {
-      console.log('회원탈퇴 처리 완료');
-      withdraw(); // 회원 탈퇴 처리 함수 호출
+      setSubmitting(true);
+      try {
+        // 서버 로그아웃은 최선의 노력으로만 시도한다. 네트워크 오류로 실패해도
+        // 로컬 세션은 정리해서 사용자가 앱에 갇히지 않게 한다.
+        await authApi.logout();
+      } catch {
+        // ignore
+      } finally {
+        setSubmitting(false);
+      }
+      setModalVisible(false);
+      logout();
       router.replace('/(auth)/login');
+      return;
+    }
+
+    if (!withdrawPassword) {
+      setWithdrawError('비밀번호를 입력해주세요.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await authApi.deleteAccount(withdrawPassword);
+      setSubmitting(false);
+      setModalVisible(false);
+      withdraw();
+      router.replace('/(auth)/login');
+    } catch {
+      setSubmitting(false);
+      setWithdrawError('비밀번호가 일치하지 않습니다.');
     }
   };
 
@@ -166,23 +195,42 @@ export default function MyPageIndexScreen() {
             
             {/* 서브 설명 문구 */}
             <Text style={popupStyles.descText}>
-              {isLogoutType 
+              {isLogoutType
                 ? '로그아웃하시면 배터리 긴급 알림을\n받아 보실 수 없습니다.'
                 : '등록된 차량 정보와 배터리 진단 이력이\n모두 삭제되며 복구 하실 수 없습니다.'}
             </Text>
 
+            {/* 회원 탈퇴는 현재 비밀번호 확인이 필요하다 */}
+            {!isLogoutType && (
+              <View style={{ width: '100%', marginBottom: 12 }}>
+                <TextInput
+                  style={popupStyles.passwordInput}
+                  placeholder="현재 비밀번호"
+                  placeholderTextColor="#999999"
+                  secureTextEntry
+                  value={withdrawPassword}
+                  onChangeText={(value) => {
+                    setWithdrawPassword(value);
+                    setWithdrawError('');
+                  }}
+                />
+                {withdrawError ? <Text style={popupStyles.errorText}>{withdrawError}</Text> : null}
+              </View>
+            )}
+
             {/* 하단 취소 / 확인 버튼 */}
             <View style={popupStyles.buttonRow}>
-              <TouchableOpacity 
-                style={popupStyles.cancelButton} 
+              <TouchableOpacity
+                style={popupStyles.cancelButton}
                 onPress={() => setModalVisible(false)}
               >
                 <Text style={popupStyles.cancelButtonText}>취소</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[popupStyles.confirmButton, { backgroundColor: isLogoutType ? '#CBE7CB' : '#FFAAAA' }]} 
+
+              <TouchableOpacity
+                style={[popupStyles.confirmButton, { backgroundColor: isLogoutType ? '#CBE7CB' : '#FFAAAA' }]}
                 onPress={handleConfirm}
+                disabled={submitting}
               >
                 <Text style={[popupStyles.confirmButtonText, { color: isLogoutType ? '#113B29' : '#D32F2F' }]}>
                   {isLogoutType ? '로그아웃' : '탈퇴하기'}
@@ -267,6 +315,21 @@ const popupStyles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 18,
     marginBottom: 20,
+  },
+  passwordInput: {
+    width: '100%',
+    height: 44,
+    borderWidth: 1,
+    borderColor: '#EFF3EE',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    fontSize: 13,
+    color: '#333333',
+  },
+  errorText: {
+    fontSize: 11,
+    color: '#D32F2F',
+    marginTop: 6,
   },
   buttonRow: {
     flexDirection: 'row',
