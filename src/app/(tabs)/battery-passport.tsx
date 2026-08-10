@@ -10,7 +10,7 @@ import { formatRul, getBatteryStatus } from '@/utils/format-battery';
 import { maskName } from '@/utils/format-name';
 
 export default function BatteryPassportScreen() {
-  const { user, vehicle, passport } = useBatteryPassport();
+  const { user, vehicle, passport, loading } = useBatteryPassport();
   const status = passport ? getBatteryStatus(passport.rul) : null;
 
   return (
@@ -67,6 +67,15 @@ export default function BatteryPassportScreen() {
                 <BatteryLifecycle events={passport.lifecycle} />
               </View>
             </>
+          )}
+
+          {vehicle && !passport && !loading && (
+            <View style={styles.emptyCard}>
+              <Text style={styles.emptyTitle}>아직 배터리 진단 정보가 없습니다</Text>
+              <Text style={styles.emptyDesc}>
+                차량 진단(열화상 촬영 또는 센서 연동)이 완료되면{'\n'}배터리 여권이 여기에 표시됩니다.
+              </Text>
+            </View>
           )}
         </ScrollView>
       </SafeAreaView>
@@ -139,6 +148,26 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: Brand.text,
+  },
+  emptyCard: {
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Brand.border,
+    backgroundColor: Brand.card,
+    padding: 24,
+    alignItems: 'center',
+    gap: 8,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Brand.text,
+  },
+  emptyDesc: {
+    fontSize: 13,
+    color: Brand.textMuted,
+    textAlign: 'center',
+    lineHeight: 18,
   },
   summaryRow: {
     flexDirection: 'row',

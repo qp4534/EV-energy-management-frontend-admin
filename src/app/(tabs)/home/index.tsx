@@ -1,3 +1,4 @@
+import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StatusBar, Text, View } from 'react-native';
@@ -56,9 +57,24 @@ export default function HomeScreen() {
       }
       try {
         setIsLoading(true);
+
+        // 충전소 거리 계산용 현재 위치 조회 (권한 거부/실패 시 위치 없이 목록만 표시)
+        let origin: { latitude: number; longitude: number } | undefined;
+        try {
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          if (status === 'granted') {
+            const location = await Location.getCurrentPositionAsync({
+              accuracy: Location.Accuracy.Balanced,
+            });
+            origin = { latitude: location.coords.latitude, longitude: location.coords.longitude };
+          }
+        } catch (error) {
+          console.error('위치 정보를 가져오는 중 오류 발생:', error);
+        }
+
         // 1. 충전소, 보고서, 배터리 패스포트 API 동시 호출
         const [chargerList, reportList, batteryData, notiList] = await Promise.all([
-          getNearbyChargers(),
+          getNearbyChargers(origin),
           getReports(),
           getBatteryPassport(vehicle?.id || 'default'),
           getNotifications(),
@@ -143,8 +159,8 @@ export default function HomeScreen() {
             currentVehicleName={currentVehicleName}
             currentPlateNumber={currentPlateNumber}
             aiChargingGuide={aiChargingGuide}
-            estimatedLife={(batteryInfo?.rul || 3.3).toFixed(1)}
-            batterySohProgress={(batteryInfo?.soh || 90) / 100}
+            estimatedLife={batteryInfo ? batteryInfo.rul.toFixed(1) : null}
+            batterySohProgress={batteryInfo ? batteryInfo.soh / 100 : null}
             nearbyStations={chargers} 
             handleSwitchVehicle={handleSwitchVehicle}
           />
