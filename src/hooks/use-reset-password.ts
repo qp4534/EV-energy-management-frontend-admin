@@ -16,7 +16,7 @@ export function useResetPassword() {
   const resetLoginAttempts = useLoginAttemptStore((state) => state.resetAttempts);
 
   const requestCode = async () => {
-    await authApi.requestVerificationCode(email);
+    await authApi.requestPasswordResetCode(email);
     setCodeRequested(true);
   };
 

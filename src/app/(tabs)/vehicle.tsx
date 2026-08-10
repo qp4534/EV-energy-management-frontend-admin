@@ -12,7 +12,7 @@ import { useVehicleBatteryStatus } from '@/hooks/use-vehicle-battery-status';
 import { VehicleRegisterRequest } from '@/types/vehicle';
 
 export default function VehicleScreen() {
-  const { vehicle, vehicles, isRegistered, registerVehicle, setPrimaryVehicle } = useVehicle();
+  const { vehicle, vehicles, isRegistered, registerVehicle, removeVehicle, setPrimaryVehicle } = useVehicle();
   const { status, rul } = useVehicleBatteryStatus(vehicle?.id);
   const [isAdding, setIsAdding] = useState(false);
 
@@ -54,6 +54,7 @@ export default function VehicleScreen() {
                 rul={rul}
                 onRegisterNew={() => setIsAdding(true)}
                 onSelectPrimary={setPrimaryVehicle}
+                onDelete={removeVehicle}
               />
             )
           )}

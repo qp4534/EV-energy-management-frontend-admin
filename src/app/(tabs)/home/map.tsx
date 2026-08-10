@@ -27,14 +27,14 @@ export default function MapScreen() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentLocation, setCurrentLocation] = useState<typeof DEFAULT_REGION>(DEFAULT_REGION);
 
-  // 기기 위치 권한 요청 및 현재 위치 가져오기
-  const requestUserLocation = async () => {
-    if (Platform.OS === 'web') return;
+  // 기기 위치 권한 요청 및 현재 위치 가져오기. 충전소와의 거리 계산에도 이 좌표를 사용한다.
+  const requestUserLocation = async (): Promise<{ latitude: number; longitude: number } | null> => {
+    if (Platform.OS === 'web') return null;
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('알림', '위치 권한이 거부되었습니다. 기본 위치로 표시합니다.');
-        return;
+        return null;
       }
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.Balanced,
@@ -49,17 +49,20 @@ export default function MapScreen() {
 
       // 현재 위치로 지도 이동 (네이티브 환경에서만)
       if (mapRef.current) mapRef.current.animateToRegion(userRegion, 1000);
+      return { latitude: userRegion.latitude, longitude: userRegion.longitude };
     } catch (error) {
       console.error('위치 정보를 가져오는 중 오류 발생:', error);
+      return null;
     }
   };
 
-  // 초기 화면 로딩 시 충전소 데이터 가져오기 및 위치 권한 요청
+  // 초기 화면 로딩 시 위치 권한 요청 후 그 좌표 기준으로 충전소 데이터 가져오기
   useEffect(() => {
     async function initScreen() {
       try {
         setIsLoading(true);
-        const [data] = await Promise.all([getNearbyChargers(), requestUserLocation()]);
+        const origin = await requestUserLocation();
+        const data = await getNearbyChargers(origin ?? undefined);
         setStations(data);
       } catch (error) {
         Alert.alert('에러', '충전소 데이터를 가져오지 못했습니다.');
@@ -79,7 +82,10 @@ export default function MapScreen() {
     try {
       setIsLoading(true);
       // 모든 충전소 데이터를 가져와서 검색어와 일치하는 충전소 필터링
-      const allStations = await getNearbyChargers();
+      const allStations = await getNearbyChargers({
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude,
+      });
       const filtered = allStations.filter(station => 
         station.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
       );
