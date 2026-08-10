@@ -18,10 +18,14 @@ import { Notification } from '@/types/notification';
 import { Report } from '@/types/report';
 
 import { getBatteryPassport } from '@/api/battery';
+import { getHomeChargingGuideMessage } from '@/api/chat';
 import { getNearbyChargers } from '@/api/charger';
 import { getNotifications } from '@/api/notification';
 import { getReports } from '@/api/report';
+import { getLatestTwinState } from '@/api/twin';
 import { BrandHeader } from '@/components/common/brand-header';
+import { BatteryPassport } from '@/types/battery';
+import { buildHomeChargingGuide, HomeChargingGuide } from '@/utils/home-charging-guide';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -42,65 +46,108 @@ export default function HomeScreen() {
   // 실시간 API 연동 상태들
   const [chargers, setChargers] = useState<Charger[]>([]);
   const [activeReport, setActiveReport] = useState<Report | null>(null);
-  const [batteryInfo, setBatteryInfo] = useState<any>(null);
-  const [aiChargingGuide, setAiChargingGuide] = useState<string>("추후 AI 가이드 연동, 배터리 온도가 너무 높습니다!\n급속 충전 대신 완속 충전을 추천합니다.");
+  const [batteryInfo, setBatteryInfo] = useState<BatteryPassport | null>(null);
+  const [chargingGuide, setChargingGuide] = useState<HomeChargingGuide>(() =>
+    buildHomeChargingGuide()
+  );
 
   // 최신 알림 상태를 저장할 변수
   const [latestNotification, setLatestNotification] = useState<Notification | null>(null);
 
   // 데이터 바인딩 로직
   useEffect(() => {
+    let cancelled = false;
+
     async function loadHomeData() {
-      if (!isRegistered) {
+      const vehicleId = vehicle?.id;
+      if (!isRegistered || !vehicleId) {
+        setBatteryInfo(null);
+        setChargingGuide(buildHomeChargingGuide());
         setIsLoading(false);
         return;
       }
+      setIsLoading(true);
+      setBatteryInfo(null);
+      setChargingGuide(buildHomeChargingGuide());
+
+      // 충전소 거리 계산용 현재 위치 조회 (권한 거부/실패 시 위치 없이 목록만 표시)
+      let origin: { latitude: number; longitude: number } | undefined;
       try {
-        setIsLoading(true);
-
-        // 충전소 거리 계산용 현재 위치 조회 (권한 거부/실패 시 위치 없이 목록만 표시)
-        let origin: { latitude: number; longitude: number } | undefined;
-        try {
-          const { status } = await Location.requestForegroundPermissionsAsync();
-          if (status === 'granted') {
-            const location = await Location.getCurrentPositionAsync({
-              accuracy: Location.Accuracy.Balanced,
-            });
-            origin = { latitude: location.coords.latitude, longitude: location.coords.longitude };
-          }
-        } catch (error) {
-          console.error('위치 정보를 가져오는 중 오류 발생:', error);
-        }
-
-        // 1. 충전소, 보고서, 배터리 패스포트 API 동시 호출
-        const [chargerList, reportList, batteryData, notiList] = await Promise.all([
-          getNearbyChargers(origin),
-          getReports(),
-          getBatteryPassport(vehicle?.id || 'default'),
-          getNotifications(),
-        ]);
-
-        setChargers(chargerList);
-        setBatteryInfo(batteryData);
-
-        // 2. 가장 최신 보고서 연동 및 상태 레벨 매핑
-        if (reportList && reportList.length > 0) {
-          setActiveReport(reportList[0]);
-        }
-
-        // 3. 가장 최신 알림 연동
-        if (notiList && notiList.length > 0) {
-          setLatestNotification(notiList[0]);
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const location = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+          origin = { latitude: location.coords.latitude, longitude: location.coords.longitude };
         }
       } catch (error) {
-        console.error('홈 데이터를 불러오는 중 에러 발생:', error);
-      } finally {
-        setIsLoading(false);
+        console.error('위치 정보를 가져오는 중 오류 발생:', error);
+      }
+
+      const [chargerResult, reportResult, batteryResult, notificationResult, twinResult] =
+        await Promise.allSettled([
+          getNearbyChargers(origin),
+          getReports(),
+          getBatteryPassport(vehicleId),
+          getNotifications(),
+          getLatestTwinState(vehicleId),
+        ]);
+
+      if (cancelled) return;
+
+      const batteryData = batteryResult.status === 'fulfilled' ? batteryResult.value : null;
+      const twinData = twinResult.status === 'fulfilled' ? twinResult.value : null;
+
+      setChargers(chargerResult.status === 'fulfilled' ? chargerResult.value : []);
+      setActiveReport(
+        reportResult.status === 'fulfilled' && reportResult.value.length > 0
+          ? reportResult.value[0]
+          : null
+      );
+      setBatteryInfo(batteryData);
+      setLatestNotification(
+        notificationResult.status === 'fulfilled' && notificationResult.value.length > 0
+          ? notificationResult.value[0]
+          : null
+      );
+      const guideInput = {
+        twin: twinData,
+        passportTemperatureC: batteryData?.temperatureC,
+      };
+      const initialGuide = buildHomeChargingGuide(guideInput);
+      setChargingGuide(initialGuide);
+
+      if (twinResult.status === 'rejected') {
+        console.warn('최신 Twin 데이터를 불러오지 못했습니다:', twinResult.reason);
+      }
+      setIsLoading(false);
+
+      if (
+        twinData &&
+        initialGuide.status === 'FRESH' &&
+        twinData.finalRiskLevel !== null &&
+        twinData.finalRiskLevel > 0
+      ) {
+        try {
+          const aiMessage = await getHomeChargingGuideMessage({
+            vehicleId,
+            observedAt: twinData.observedAt,
+            finalRiskLevel: twinData.finalRiskLevel,
+          });
+          if (cancelled) return;
+          setChargingGuide(buildHomeChargingGuide({ ...guideInput, aiMessage }));
+        } catch (error) {
+          console.warn('AI 충전 가이드 문장을 생성하지 못했습니다:', error);
+        }
       }
     }
 
     loadHomeData();
-  }, [isRegistered, vehicle]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isRegistered, vehicle?.id]);
 
   // 알림 단계 상태 자동 모달 레이어 트리거 연동
   useEffect(() => {
@@ -158,7 +205,7 @@ export default function HomeScreen() {
             vehicle={vehicle}
             currentVehicleName={currentVehicleName}
             currentPlateNumber={currentPlateNumber}
-            aiChargingGuide={aiChargingGuide}
+            chargingGuide={chargingGuide}
             estimatedLife={batteryInfo ? batteryInfo.rul.toFixed(1) : null}
             batterySohProgress={batteryInfo ? batteryInfo.soh / 100 : null}
             nearbyStations={chargers} 
