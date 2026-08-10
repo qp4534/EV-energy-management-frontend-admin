@@ -18,17 +18,25 @@ type BackendMeResponse = {
 
 type BackendMeDetail = BackendMeResponse & {
   phone: string | null;
+  pushEnabled: boolean | null;
 };
 
 type ProfileUpdatePayload = {
   name?: string;
   phone?: string;
+  pushEnabled?: boolean;
   currentPassword?: string;
   newPassword?: string;
 };
 
 function toUserWithPhone(dto: BackendMeDetail): User {
-  return { id: dto.userId, name: dto.name, email: dto.email, phone: dto.phone ?? undefined };
+  return {
+    id: dto.userId,
+    name: dto.name,
+    email: dto.email,
+    phone: dto.phone ?? undefined,
+    pushEnabled: dto.pushEnabled ?? undefined,
+  };
 }
 
 type BackendLoginResponse = {
@@ -152,6 +160,7 @@ export async function getMe(): Promise<User> {
     name: current?.name ?? '홍길동',
     email: current?.email ?? 'test@test.com',
     phone: current?.phone ?? '010-1234-5678',
+    pushEnabled: current?.pushEnabled ?? true,
   });
 }
 
@@ -166,6 +175,7 @@ export async function updateProfile(payload: ProfileUpdatePayload): Promise<User
     name: payload.name ?? current?.name ?? '홍길동',
     email: current?.email ?? 'test@test.com',
     phone: payload.phone ?? current?.phone ?? '010-1234-5678',
+    pushEnabled: payload.pushEnabled ?? current?.pushEnabled ?? true,
   });
 }
 
