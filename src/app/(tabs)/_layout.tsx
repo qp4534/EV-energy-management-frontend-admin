@@ -1,10 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useSegments } from 'expo-router';
+import { useEffect } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
+
+import { useVehicle } from '@/hooks/use-vehicle';
 // npx expo install @expo/vector-icons 설치
 
 export default function TabsLayout() {
   const segments = useSegments();
+  const { fetchVehicles } = useVehicle();
+
+  useEffect(() => {
+    fetchVehicles();
+  }, []);
 
   // 현재 활성화된 화면이 'guide-chat' 인지 확인
   // segments 배열의 마지막 요소가 'guide-chat'인지 체크

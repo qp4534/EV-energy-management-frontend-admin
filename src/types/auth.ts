@@ -2,6 +2,8 @@ export type User = {
   id: string;
   name: string;
   email: string;
+  /** 로그인 응답엔 없고 /api/auth/me 조회 시에만 채워진다. */
+  phone?: string;
 };
 
 export type LoginRequest = {
@@ -20,9 +22,11 @@ export type SignupInfoRequest = {
   password: string;
   birthDate: string;
   phone: string;
+  consentedTerms: string[];
 };
 
 export type FindIdResult = {
   maskedId: string;
-  joinedAt: string;
+  /** 백엔드 응답에 가입일이 없어 실제 조회 결과에는 없다. mock에서만 채워진다. */
+  joinedAt?: string;
 };

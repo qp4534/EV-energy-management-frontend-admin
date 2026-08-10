@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 
 import { getNotification } from '@/api/notification';
+import { markReportAsRead } from '@/api/report';
 import { Header } from '@/components/common/header';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -15,9 +16,14 @@ export default function NotificationDetailScreen() {
   const [notification, setNotification] = useState<Notification | null>(null);
 
   useEffect(() => {
-    if (id) {
-      getNotification(id).then(setNotification);
-    }
+    if (!id) return;
+    getNotification(id).then((found) => {
+      setNotification(found);
+      // 이상감지(anomaly-logs)발 알림은 백엔드에 읽음 상태 컬럼이 없어 리포트에서 온 것만 처리한다.
+      if (found.hasReport && !found.isRead) {
+        markReportAsRead(id).catch(() => {});
+      }
+    });
   }, [id]);
 
   return (

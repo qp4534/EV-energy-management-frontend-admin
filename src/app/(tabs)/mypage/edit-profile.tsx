@@ -1,50 +1,87 @@
+import * as authApi from '@/api/auth';
 import { useAuthStore } from '@/store/auth-store';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function EditProfileScreen() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
+
+  // 🟡 이름/전화번호 편집 상태 (마운트 시 /api/auth/me로 최신 값을 채운다)
+  const [name, setName] = useState(user?.name ?? '');
+  const [phone, setPhone] = useState(user?.phone ?? '');
+  const [savingProfile, setSavingProfile] = useState(false);
+  // getMe() 응답이 늦게 오면 그 사이 사용자가 입력한 값을 덮어쓸 수 있어서,
+  // 로딩이 끝나기 전까지는 이름/전화번호 입력을 막는다.
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   // 🔒 비밀번호 변경 입력 상태 관리
+  const [currentPassword, setCurrentPassword] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
 
-  // 🛠️ 커스텀 알림 모달 제어 상태 ('saveSuccess' 추가)
+  // 🛠️ 커스텀 알림 모달 제어 상태
   const [alertVisible, setAlertVisible] = useState<boolean>(false);
-  const [alertType, setAlertType] = useState<'success' | 'error' | 'empty' | 'saveSuccess'>('success');
+  const [alertType, setAlertType] = useState<
+    'success' | 'error' | 'empty' | 'saveSuccess' | 'wrongCurrentPassword' | 'saveError'
+  >('success');
+
+  useEffect(() => {
+    authApi.getMe().then((me) => {
+      updateUser(me);
+      setName(me.name);
+      setPhone(me.phone ?? '');
+      setProfileLoaded(true);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 1. 비밀번호 개별 변경 처리 함수
-  const handlePasswordChange = () => {
-    if (!password || !confirmPassword) {
+  const handlePasswordChange = async () => {
+    if (!currentPassword || !password || !confirmPassword) {
       setAlertType('empty');
       setAlertVisible(true);
       return;
     }
     if (password !== confirmPassword) {
-      setAlertType('error'); 
+      setAlertType('error');
       setAlertVisible(true);
       return;
     }
-    
-    // 비밀번호 변경 API 호출 로직 연동 자리
-    console.log('비밀번호 변경 완료:', password);
-    setAlertType('success'); 
-    setAlertVisible(true);
-    
-    setPassword('');
-    setConfirmPassword('');
+
+    setChangingPassword(true);
+    try {
+      await authApi.updateProfile({ currentPassword, newPassword: password });
+      setAlertType('success');
+      setAlertVisible(true);
+      setCurrentPassword('');
+      setPassword('');
+      setConfirmPassword('');
+    } catch {
+      setAlertType('wrongCurrentPassword');
+      setAlertVisible(true);
+    } finally {
+      setChangingPassword(false);
+    }
   };
 
   // 2. 하단 전체 변경사항 저장 처리 함수 (커스텀 팝업 트리거)
-  const handleSaveChanges = () => {
-    // 유저 정보 수정 API 업데이트 호출 로직 연동 자리
-    console.log('변경사항 저장 프로세스 시작');
-    
-    setAlertType('saveSuccess'); // ◀ 새로 보내주신 정보 반영 성공 팝업 설정
-    setAlertVisible(true);
+  const handleSaveChanges = async () => {
+    setSavingProfile(true);
+    try {
+      const updated = await authApi.updateProfile({ name, phone });
+      updateUser(updated);
+      setAlertType('saveSuccess');
+      setAlertVisible(true);
+    } catch {
+      setAlertType('saveError');
+      setAlertVisible(true);
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
   // 3. 모달을 닫을 때 실행할 액션 (정보 저장 성공 팝업일 때는 마이페이지 메인으로 리다이렉트)
@@ -86,9 +123,15 @@ export default function EditProfileScreen() {
         <View style={styles.infoCard}>
           <View style={styles.infoGroup}>
             <Text style={styles.infoLabel}>이름</Text>
-            <Text style={styles.infoValue}>{user?.name || '홍길동'}</Text>
+            <TextInput
+              style={styles.infoInput}
+              value={name}
+              onChangeText={setName}
+              placeholder="이름"
+              editable={profileLoaded}
+            />
           </View>
-          
+
           <View style={styles.divider} />
 
           <View style={styles.infoGroup}>
@@ -105,16 +148,32 @@ export default function EditProfileScreen() {
 
           <View style={styles.infoGroup}>
             <Text style={styles.infoLabel}>휴대폰 번호</Text>
-            <Text style={styles.infoValue}>{(user as any)?.phone || '010-0000-0000'}</Text>
+            <TextInput
+              style={styles.infoInput}
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="휴대폰 번호"
+              keyboardType="phone-pad"
+              editable={profileLoaded}
+            />
           </View>
         </View>
 
         {/* 🔒 비밀번호 변경 섹션 */}
         <Text style={styles.sectionLabel}>비밀번호 변경</Text>
-        
+
         <TextInput
           style={styles.input}
-          placeholder="비밀번호 입력"
+          placeholder="현재 비밀번호"
+          placeholderTextColor="#999999"
+          secureTextEntry
+          value={currentPassword}
+          onChangeText={setCurrentPassword}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="새 비밀번호 입력"
           placeholderTextColor="#999999"
           secureTextEntry
           value={password}
@@ -124,19 +183,22 @@ export default function EditProfileScreen() {
         <View style={styles.passwordRow}>
           <TextInput
             style={[styles.input, { flex: 1, marginBottom: 0 }]}
-            placeholder="비밀번호 확인"
+            placeholder="새 비밀번호 확인"
             placeholderTextColor="#999999"
             secureTextEntry
             value={confirmPassword}
             onChangeText={setConfirmPassword}
           />
-          <TouchableOpacity style={styles.changeButton} onPress={handlePasswordChange}>
+          <TouchableOpacity style={styles.changeButton} onPress={handlePasswordChange} disabled={changingPassword}>
             <Text style={styles.changeButtonText}>변경</Text>
           </TouchableOpacity>
         </View>
 
         {/* 💾 하단 변경사항 저장 버튼 */}
-        <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={handleSaveChanges}
+          disabled={savingProfile || !profileLoaded}>
           <Text style={styles.saveButtonText}>변경사항 저장</Text>
         </TouchableOpacity>
 
@@ -205,7 +267,31 @@ export default function EditProfileScreen() {
                   비밀번호를 입력해주세요.
                 </Text>
                 <Text style={popupStyles.descText}>
-                  새 비밀번호와 확인란을 모두 입력해야 합니다.
+                  현재 비밀번호와 새 비밀번호, 확인란을 모두 입력해야 합니다.
+                </Text>
+              </>
+            )}
+
+            {/* 현재 비밀번호 불일치(백엔드 검증 실패) 팝업 */}
+            {alertType === 'wrongCurrentPassword' && (
+              <>
+                <Text style={popupStyles.titleText}>
+                  현재 비밀번호가 일치하지 않습니다.
+                </Text>
+                <Text style={popupStyles.descText}>
+                  다시 확인 후 시도해주세요.
+                </Text>
+              </>
+            )}
+
+            {/* 회원정보 저장 실패 팝업 */}
+            {alertType === 'saveError' && (
+              <>
+                <Text style={popupStyles.titleText}>
+                  회원 정보 저장에 실패했습니다.
+                </Text>
+                <Text style={popupStyles.descText}>
+                  잠시 후 다시 시도해주세요.
                 </Text>
               </>
             )}
@@ -299,6 +385,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#113B29',
+  },
+  infoInput: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#113B29',
+    padding: 0,
   },
   emailRow: {
     flexDirection: 'row',

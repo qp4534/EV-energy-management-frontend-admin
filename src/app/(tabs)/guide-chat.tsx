@@ -1,9 +1,10 @@
+import * as chatApi from '@/api/chat';
 import { BrandHeader } from '@/components/common/brand-header';
 import { useAuthStore } from '@/store/auth-store';
 import { useVehicleStore } from '@/store/vehicle-store';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Text, TouchableOpacity, View } from 'react-native';
 
 import ChatInput from '@/components/chat/ChatInput';
@@ -16,11 +17,14 @@ interface Message {
 }
 
 export default function GuideChatScreen() {
-  const router = useRouter(); 
+  const router = useRouter();
   const { user } = useAuthStore();
-  const { vehicle } = useVehicleStore(); 
+  const { vehicle } = useVehicleStore();
 
   const [messages, setMessages] = useState<Message[]>([]);
+  // 백엔드가 conversationId를 발급해주지 않아서, 같은 대화로 이어지도록
+  // 화면에 처음 진입할 때 프론트에서 하나 만들어 계속 재사용한다.
+  const conversationIdRef = useRef(`conv-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
   // 차량 여부에 따른 초기 웰컴 메시지 세팅
   useEffect(() => {
@@ -30,20 +34,17 @@ export default function GuideChatScreen() {
       ]);
     }
   }, [vehicle]);
-  
-  // AI 챗봇 API 연동 시뮬레이션 함수
+
   const fetchAiChatbotResponse = async (userText: string) => {
     try {
-      // API 응답을 시뮬레이션하기 위해 약간의 딜레이 후 AI 메시지 추가
-      setTimeout(() => {
-        setMessages(prev => [...prev, { 
-          id: Date.now().toString(), 
-          sender: 'ai', 
-          text: `[AI 챗봇 연동 완료] 입력하신 "${userText}" 분석에 따른 최적의 배터리 충전 가이드라인입니다.` 
-        }]);
-      }, 500);
+      const answer = await chatApi.sendChatMessage(userText, vehicle?.id, conversationIdRef.current);
+      setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'ai', text: answer }]);
     } catch (e) {
       console.log("AI Chat API Error", e);
+      setMessages(prev => [
+        ...prev,
+        { id: Date.now().toString(), sender: 'ai', text: '답변을 가져오지 못했습니다. 잠시 후 다시 시도해주세요.' },
+      ]);
     }
   };
 
