@@ -1,9 +1,11 @@
 import * as authApi from '@/api/auth';
 import { useAuthStore } from '@/store/auth-store';
 import { Feather } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -16,6 +18,7 @@ export default function EditProfileScreen() {
   // getMe() 응답이 늦게 오면 그 사이 사용자가 입력한 값을 덮어쓸 수 있어서,
   // 로딩이 끝나기 전까지는 이름/전화번호 입력을 막는다.
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // 🔒 비밀번호 변경 입력 상태 관리
   const [currentPassword, setCurrentPassword] = useState('');
@@ -38,6 +41,32 @@ export default function EditProfileScreen() {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 0. 프로필 사진 선택 및 업로드 처리 함수
+  const handlePickProfileImage = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (result.canceled || result.assets.length === 0) return;
+
+    setUploadingImage(true);
+    try {
+      const imageUrl = await authApi.uploadProfileImage(result.assets[0].uri, result.assets[0].mimeType);
+      const updated = await authApi.updateProfile({ profileImageUrl: imageUrl });
+      updateUser(updated);
+    } catch {
+      setAlertType('saveError');
+      setAlertVisible(true);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   // 1. 비밀번호 개별 변경 처리 함수
   const handlePasswordChange = async () => {
@@ -111,10 +140,26 @@ export default function EditProfileScreen() {
       >
         {/* 🟡 중앙 프로필 이미지 영역 */}
         <View style={styles.profileImageContainer}>
-          <View style={styles.profileCircle}>
-            <Feather name="user" size={54} color="#113B29" />
-          </View>
-          <TouchableOpacity style={styles.cameraBadge} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.profileCircle}
+            activeOpacity={0.8}
+            onPress={handlePickProfileImage}
+            disabled={uploadingImage}
+          >
+            {uploadingImage ? (
+              <ActivityIndicator color="#113B29" />
+            ) : user?.profileImageUrl ? (
+              <Image source={{ uri: user.profileImageUrl }} style={styles.profileImage} contentFit="cover" />
+            ) : (
+              <Feather name="user" size={54} color="#113B29" />
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.cameraBadge}
+            activeOpacity={0.8}
+            onPress={handlePickProfileImage}
+            disabled={uploadingImage}
+          >
             <Feather name="camera" size={12} color="#113B29" />
           </TouchableOpacity>
         </View>
@@ -350,6 +395,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+  },
+  profileImage: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
   },
   cameraBadge: {
     position: 'absolute',

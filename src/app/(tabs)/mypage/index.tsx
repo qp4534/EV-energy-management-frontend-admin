@@ -2,6 +2,7 @@ import * as authApi from '@/api/auth';
 import { BrandHeader } from '@/components/common/brand-header';
 import { useAuthStore } from '@/store/auth-store';
 import { Feather } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -106,20 +107,29 @@ export default function MyPageIndexScreen() {
       >
         {/* 🟡 유저 프로필 영역 */}
         <View style={{ alignItems: 'center', marginTop: 32, marginBottom: 32 }}>
-          <View 
-            style={{ 
-              width: 96, 
-              height: 96, 
-              backgroundColor: '#E5ECD8', 
-              borderRadius: 48, 
-              justifyContent: 'center', 
+          <View
+            style={{
+              width: 96,
+              height: 96,
+              backgroundColor: '#E5ECD8',
+              borderRadius: 48,
+              justifyContent: 'center',
               alignItems: 'center',
               borderWidth: 1,
               borderColor: '#D4E2C3',
-              marginBottom: 12
+              marginBottom: 12,
+              overflow: 'hidden',
             }}
           >
-            <Feather name="user" size={48} color="#113B29" />
+            {user?.profileImageUrl ? (
+              <Image
+                source={{ uri: user.profileImageUrl }}
+                style={{ width: 96, height: 96 }}
+                contentFit="cover"
+              />
+            ) : (
+              <Feather name="user" size={48} color="#113B29" />
+            )}
           </View>
           {/* 회원가입/로그인 시 입력한 유저 이름 연동 */}
           <Text style={{ color: '#113B29', fontSize: 16, fontWeight: 'bold' }}>
