@@ -11,13 +11,15 @@ export function ChargerListItem({ charger, isLast }: ChargerListItemProps) {
   const isAvailable = charger.isAvailable;
   const statusText = isAvailable ? '이용가능' : '이용불가';
   const displayDistance = charger.distanceKm ? `${charger.distanceKm} km` : '0 km';
+  const waitLabel =
+    charger.waitingCount != null ? `대기 ${charger.waitingCount}대` : null;
 
   return (
-    <View 
+    <View
       style={[
         styles.rowContainer,
-        { 
-          borderBottomWidth: isLast ? 0 : 1, 
+        {
+          borderBottomWidth: isLast ? 0 : 1,
           borderBottomColor: '#EEF2EE',
         }
       ]}
@@ -28,7 +30,8 @@ export function ChargerListItem({ charger, isLast }: ChargerListItemProps) {
           {charger.name}
         </ThemedText>
         <ThemedText style={styles.stationSub}>
-          {displayDistance}, {charger.address || '급속 1기'}
+          {displayDistance} · {charger.address || '급속 1기'}
+          {waitLabel ? ` · ${waitLabel}` : ''}
         </ThemedText>
       </View>
 
