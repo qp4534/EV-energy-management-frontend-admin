@@ -4,13 +4,15 @@ import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Platform, StatusBar, TextInput, TouchableOpacity, View } from 'react-native';
 
+import { getCurrentDemandLevel, DemandLevel } from '@/api/demand';
 import { getNearbyChargers } from '@/api/charger';
 import { BrandHeader } from '@/components/common/brand-header';
 import ChargerMap from '@/components/home/ChargerMap';
+import { DemandBadge } from '@/components/home/DemandBadge';
 import StationBottomSheet from '@/components/home/StationBottomSheet';
 import { Charger } from '@/types/charger';
 
-// 서울 강남역 기준 기본 위치 설정 
+// 서울 강남역 기준 기본 위치 설정
 const DEFAULT_REGION = {
   latitude: 37.4979,
   longitude: 127.0276,
@@ -21,11 +23,12 @@ const DEFAULT_REGION = {
 export default function MapScreen() {
   const router = useRouter();
   const mapRef = useRef<any>(null);
-  
+
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [stations, setStations] = useState<Charger[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [currentLocation, setCurrentLocation] = useState<typeof DEFAULT_REGION>(DEFAULT_REGION);
+  const [demand, setDemand] = useState<DemandLevel | null>(null);
 
   // 기기 위치 권한 요청 및 현재 위치 가져오기. 충전소와의 거리 계산에도 이 좌표를 사용한다.
   // expo-location은 웹도 지원한다(navigator.geolocation을 감싼 형태) — 웹이라고 건너뛰지 않는다.
@@ -71,6 +74,9 @@ export default function MapScreen() {
       }
     }
     initScreen();
+
+    // 지금 시간대 충전 수요 배지 - 실패해도 화면엔 영향 없음(null이면 배지가 그냥 안 보임)
+    getCurrentDemandLevel().then(setDemand);
   }, []);
 
   // 검색 버튼 클릭 시 충전소 검색 및 지도 이동 함수
@@ -81,15 +87,15 @@ export default function MapScreen() {
     }
     try {
       setIsLoading(true);
-      // 모든 충전소 데이터를 가져와서 검색어와 일치하는 충전소 필터링
+      // 모든 충전소 데이터를 가져와서(현재 위치 기준 거리순 정렬 포함) 검색어와 일치하는 것만 필터링
       const allStations = await getNearbyChargers({
         latitude: currentLocation.latitude,
         longitude: currentLocation.longitude,
       });
-      const filtered = allStations.filter(station => 
+      const filtered = allStations.filter(station =>
         station.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
       );
-      setStations(filtered); // 검색 결과를 반영
+      setStations(filtered);
 
       if (filtered.length === 0) {
         Alert.alert('검색 결과', '해당하는 충전소가 없습니다.');
@@ -102,7 +108,7 @@ export default function MapScreen() {
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         }, 1000);
-      } 
+      }
     } catch (error) {
       Alert.alert('오류', '검색 결과를 가져오지 못했습니다.');
     } finally {
@@ -114,9 +120,9 @@ export default function MapScreen() {
     <View style={{ flex: 1, backgroundColor: '#E2EFE0' }}>
       <StatusBar barStyle="light-content" />
 
-      <BrandHeader 
-        title="충전소 위치 찾기" 
-        showBack 
+      <BrandHeader
+        title="충전소 위치 찾기"
+        showBack
       />
 
       {/* 맵 콘텐츠 바디 */}
@@ -136,6 +142,10 @@ export default function MapScreen() {
           <TouchableOpacity onPress={handleSearch} style={{ padding: 4 }}>
             <Feather name="search" size={20} color="#113B29" />
           </TouchableOpacity>
+        </View>
+
+        <View style={{ position: 'absolute', top: 72, left: 16, zIndex: 20 }}>
+          <DemandBadge demand={demand} />
         </View>
 
         <StationBottomSheet stations={stations} isLoading={isLoading} />
