@@ -1,4 +1,5 @@
 import { Charger } from '@/types/charger';
+import { HomeChargingGuide } from '@/utils/home-charging-guide';
 import { Vehicle } from '@/types/vehicle';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -8,7 +9,7 @@ type RegisteredHomeProps = {
   vehicle: Vehicle | null;
   currentVehicleName: string;
   currentPlateNumber: string;
-  aiChargingGuide: string;
+  chargingGuide: HomeChargingGuide;
   estimatedLife: string;
   batterySohProgress: number;
   nearbyStations: Charger[];
@@ -19,13 +20,20 @@ export function RegisteredHome({
   vehicle,
   currentVehicleName,
   currentPlateNumber,
-  aiChargingGuide,
+  chargingGuide,
   estimatedLife,
   batterySohProgress,
   nearbyStations,
   handleSwitchVehicle
 }: RegisteredHomeProps) {
   const router = useRouter();
+  const guideColors = {
+    normal: { background: '#EDF4D9', foreground: '#4F6128', meta: '#718143' },
+    caution: { background: '#FFF4CC', foreground: '#725A00', meta: '#8A721D' },
+    warning: { background: '#FFE3C2', foreground: '#8A4300', meta: '#A45C18' },
+    emergency: { background: '#FFE0E0', foreground: '#A61B1B', meta: '#B84A4A' },
+    muted: { background: '#F0F2EF', foreground: '#4E5751', meta: '#737C76' },
+  }[chargingGuide.tone];
 
   return (
     <View>
@@ -70,10 +78,20 @@ export function RegisteredHome({
       {/* 2. AI 충전 가이드 카드 */}
       <View style={{ backgroundColor: '#ffffff', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#EAEFEA', marginBottom: 16 }}>
         <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#999999', marginBottom: 8 }}>AI 충전가이드</Text> 
-        <View style={{ backgroundColor: '#EDF4D9', padding: 16, borderRadius: 12 }}>
-          <Text style={{ color: '#4F6128', fontSize: 13, fontWeight: '600', lineHeight: 20 }}>
-            {aiChargingGuide}
-          </Text> 
+        <View style={{ backgroundColor: guideColors.background, padding: 16, borderRadius: 12 }}>
+          <Text style={{ color: guideColors.foreground, fontSize: 14, fontWeight: '700', lineHeight: 21 }}>
+            {chargingGuide.headline}
+          </Text>
+          {chargingGuide.message && (
+            <Text style={{ color: guideColors.foreground, fontSize: 13, fontWeight: '600', lineHeight: 20, marginTop: 4 }}>
+              {chargingGuide.message}
+            </Text>
+          )}
+          {chargingGuide.meta && (
+            <Text style={{ color: guideColors.meta, fontSize: 11, lineHeight: 16, marginTop: 8 }}>
+              {chargingGuide.meta}
+            </Text>
+          )}
         </View>
       </View>
 
