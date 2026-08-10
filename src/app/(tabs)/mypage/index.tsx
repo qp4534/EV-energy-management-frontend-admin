@@ -3,16 +3,40 @@ import { BrandHeader } from '@/components/common/brand-header';
 import { useAuthStore } from '@/store/auth-store';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function MyPageIndexScreen() {
   const router = useRouter();
   // Zustand 스토어에서 유저 데이터와 액션 함수 가져오기
-  const { user, logout, withdraw } = useAuthStore();
+  const { user, updateUser, logout, withdraw } = useAuthStore();
 
-  // 알림 설정 ON/OFF 토글 상태
-  const [isPushEnabled, setIsPushEnabled] = useState<boolean>(true);
+  // 알림 설정 ON/OFF 토글 상태. 로그인 응답엔 없어서 마운트 시 /api/auth/me로 채운다.
+  const [isPushEnabled, setIsPushEnabled] = useState<boolean>(user?.pushEnabled ?? true);
+  const [pushToggling, setPushToggling] = useState(false);
+
+  useEffect(() => {
+    authApi.getMe().then((me) => {
+      updateUser(me);
+      setIsPushEnabled(me.pushEnabled ?? true);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleTogglePush = async () => {
+    const next = !isPushEnabled;
+    setIsPushEnabled(next);
+    setPushToggling(true);
+    try {
+      const updated = await authApi.updateProfile({ pushEnabled: next });
+      updateUser(updated);
+    } catch {
+      // 저장 실패 시 토글을 원래대로 되돌린다.
+      setIsPushEnabled(!next);
+    } finally {
+      setPushToggling(false);
+    }
+  };
 
   // 🛠️ 커스텀 모달(팝업) 제어 상태
   const [modalVisible, setModalVisible] = useState<boolean>(false);
@@ -126,8 +150,9 @@ export default function MyPageIndexScreen() {
         {/* 3. 알림 설정 */}
         <View style={styles.menuCard}>
           <Text style={styles.menuText}>알림 설정</Text>
-          <TouchableOpacity 
-            onPress={() => setIsPushEnabled(!isPushEnabled)}
+          <TouchableOpacity
+            onPress={handleTogglePush}
+            disabled={pushToggling}
             style={{
               backgroundColor: isPushEnabled ? '#CBE7CB' : '#EAEAEA',
               paddingHorizontal: 16,

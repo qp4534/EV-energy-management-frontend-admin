@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BrandInput } from '@/components/common/brand-input';
 import { BrandMark } from '@/components/common/brand-mark';
 import { Brand } from '@/constants/theme';
-import { AccountLockedError, InvalidCredentialsError, useAuth } from '@/hooks/use-auth';
+import { AccountLockedError, useAuth } from '@/hooks/use-auth';
 
 export default function LoginScreen() {
   const { login } = useAuth();
@@ -25,14 +25,12 @@ export default function LoginScreen() {
     } catch (error) {
       if (error instanceof AccountLockedError) {
         setLocked(true);
-        setErrorMessage('비밀번호를 5회 잘못 입력하여 계정이 잠겼습니다. 비밀번호 재설정 후 다시 로그인해주세요.');
-      } else if (error instanceof InvalidCredentialsError) {
+        setErrorMessage(error.message);
+      } else {
         setLocked(false);
         setErrorMessage(
-          `이메일 또는 비밀번호가 올바르지 않습니다. (${error.attemptsRemaining}회 남음)`
+          error instanceof Error ? error.message : '로그인에 실패했습니다. 잠시 후 다시 시도해주세요.'
         );
-      } else {
-        setErrorMessage('로그인에 실패했습니다. 잠시 후 다시 시도해주세요.');
       }
     } finally {
       setSubmitting(false);

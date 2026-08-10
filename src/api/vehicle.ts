@@ -83,6 +83,7 @@ export async function registerVehicle(request: VehicleRegisterRequest): Promise<
       nickname: request.nickname,
       model: request.model,
       carNumber: request.plateNumber,
+      vin: request.vin,
       userId,
     });
     return toVehicle(data);

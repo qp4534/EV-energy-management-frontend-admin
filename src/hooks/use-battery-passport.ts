@@ -16,11 +16,19 @@ export function useBatteryPassport() {
 
     let cancelled = false;
     setLoading(true);
-    batteryApi.getBatteryPassport(vehicle.id).then((data) => {
-      if (cancelled) return;
-      setPassport(data);
-      setLoading(false);
-    });
+    batteryApi
+      .getBatteryPassport(vehicle.id)
+      .then((data) => {
+        if (cancelled) return;
+        setPassport(data);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setPassport(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
     return () => {
       cancelled = true;

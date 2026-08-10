@@ -14,12 +14,15 @@ type BackendBatteryPassportDto = {
   lastInspectedAt: string | null;
 };
 
-export async function getBatteryPassport(vehicleId: string): Promise<BatteryPassport> {
+// 방금 등록해서 아직 진단을 안 받은 차량은 배터리 여권이 없는 게 정상 상태라, 이건 예외가
+// 아니라 null로 표현한다. 각 화면은 이미 batteryInfo?.soh 식으로 옵셔널 체이닝을 쓰고 있어서
+// null을 그대로 넘겨도 안전하다.
+export async function getBatteryPassport(vehicleId: string): Promise<BatteryPassport | null> {
   if (!USE_MOCK) {
     const { data } = await apiClient.get<BackendBatteryPassportDto[]>('/api/battery-passports');
     const passport = data.find((item) => item.carId === vehicleId);
     if (!passport) {
-      throw new Error('BATTERY_PASSPORT_NOT_FOUND');
+      return null;
     }
 
     const lifecycle: BatteryLifecycleEvent[] = [

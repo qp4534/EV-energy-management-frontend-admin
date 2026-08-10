@@ -28,8 +28,8 @@ export default function MapScreen() {
   const [currentLocation, setCurrentLocation] = useState<typeof DEFAULT_REGION>(DEFAULT_REGION);
 
   // 기기 위치 권한 요청 및 현재 위치 가져오기. 충전소와의 거리 계산에도 이 좌표를 사용한다.
+  // expo-location은 웹도 지원한다(navigator.geolocation을 감싼 형태) — 웹이라고 건너뛰지 않는다.
   const requestUserLocation = async (): Promise<{ latitude: number; longitude: number } | null> => {
-    if (Platform.OS === 'web') return null;
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {

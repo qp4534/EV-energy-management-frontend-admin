@@ -1,41 +1,28 @@
+import { isAxiosError } from 'axios';
+
 import * as authApi from '@/api/auth';
 import { useAuthStore } from '@/store/auth-store';
-import { MAX_LOGIN_ATTEMPTS, useLoginAttemptStore } from '@/store/login-attempt-store';
 import { LoginRequest } from '@/types/auth';
+import { getErrorMessage } from '@/utils/error-message';
 
-export class AccountLockedError extends Error {
-  constructor() {
-    super('ACCOUNT_LOCKED');
-  }
-}
-
-export class InvalidCredentialsError extends Error {
-  attemptsRemaining: number;
-  constructor(attemptsRemaining: number) {
-    super('INVALID_CREDENTIALS');
-    this.attemptsRemaining = attemptsRemaining;
-  }
-}
+// 계정 잠금은 백엔드가 실제로 판단한다(USER.is_locked, 5회 실패 시). 프론트는 더 이상 자체적으로
+// 시도 횟수를 세지 않는다 - 로컬(브라우저별) 카운터는 다른 기기의 시도를 모르고 localStorage만
+// 지우면 무력화돼서 보안 효과가 없었고, 백엔드의 실제 잠금 상태와도 따로 놀았다.
+export class AccountLockedError extends Error {}
 
 export function useAuth() {
   const { token, user, isLoggedIn, isHydrated, login, logout } = useAuthStore();
-  const { recordFailure, resetAttempts, isLocked } = useLoginAttemptStore();
 
   const loginWithCredentials = async (request: LoginRequest) => {
-    if (isLocked(request.email)) {
-      throw new AccountLockedError();
-    }
-
     try {
       const res = await authApi.login(request);
-      resetAttempts(request.email);
       login(res.token, res.user);
     } catch (error) {
-      const { attempts, locked } = recordFailure(request.email);
-      if (locked) {
-        throw new AccountLockedError();
+      const message = getErrorMessage(error, '이메일 또는 비밀번호가 올바르지 않습니다.');
+      if (isAxiosError(error) && error.response?.data?.error === 'ACCOUNT_LOCKED') {
+        throw new AccountLockedError(message);
       }
-      throw new InvalidCredentialsError(MAX_LOGIN_ATTEMPTS - attempts);
+      throw new Error(message);
     }
   };
 

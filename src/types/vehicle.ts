@@ -11,4 +11,5 @@ export type VehicleRegisterRequest = {
   nickname: string;
   model: string;
   plateNumber: string;
+  vin: string;
 };

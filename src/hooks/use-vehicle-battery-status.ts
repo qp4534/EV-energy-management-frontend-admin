@@ -13,12 +13,21 @@ export function useVehicleBatteryStatus(vehicleId: string | undefined) {
 
     let cancelled = false;
     setLoading(true);
-    batteryApi.getBatteryPassport(vehicleId).then((data) => {
-      if (cancelled) return;
-      setSoh(data.soh);
-      setRul(data.rul);
-      setLoading(false);
-    });
+    batteryApi
+      .getBatteryPassport(vehicleId)
+      .then((data) => {
+        if (cancelled) return;
+        setSoh(data?.soh ?? null);
+        setRul(data?.rul ?? null);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setSoh(null);
+        setRul(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
     return () => {
       cancelled = true;

@@ -17,12 +17,17 @@ export default function ResetPasswordScreen() {
     codeConfirmed,
     requestCode,
     confirmCode,
+    sendingCode,
+    confirmingCode,
+    codeRequestError,
+    codeConfirmError,
     password,
     setPassword,
     passwordConfirm,
     setPasswordConfirm,
     canSubmit,
     submitting,
+    submitError,
     submit,
     done,
     goToLogin,
@@ -60,6 +65,10 @@ export default function ResetPasswordScreen() {
                 onCodeChange={setCode}
                 onConfirmCode={confirmCode}
                 confirmed={codeConfirmed}
+                sending={sendingCode}
+                confirming={confirmingCode}
+                requestError={codeRequestError}
+                confirmError={codeConfirmError}
               />
             </View>
 
@@ -82,6 +91,8 @@ export default function ResetPasswordScreen() {
                 secureTextEntry
               />
             </View>
+
+            {submitError && <Text style={styles.errorText}>{submitError}</Text>}
 
             <Pressable
               style={[styles.submitButton, (!canSubmit || submitting) && styles.submitButtonDisabled]}
@@ -121,6 +132,11 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 13,
     color: Brand.label,
+  },
+  errorText: {
+    fontSize: 13,
+    color: '#D32F2F',
+    textAlign: 'center',
   },
   submitButton: {
     borderRadius: 999,

@@ -4,6 +4,7 @@ export type User = {
   email: string;
   /** 로그인 응답엔 없고 /api/auth/me 조회 시에만 채워진다. */
   phone?: string;
+  pushEnabled?: boolean;
 };
 
 export type LoginRequest = {

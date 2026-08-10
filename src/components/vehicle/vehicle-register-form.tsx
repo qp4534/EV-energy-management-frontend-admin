@@ -14,9 +14,11 @@ type VehicleRegisterFormProps = {
 export function VehicleRegisterForm({ onSubmit, submitting = false }: VehicleRegisterFormProps) {
   const [model, setModel] = useState('');
   const [plateNumber, setPlateNumber] = useState('');
+  const [vin, setVin] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
 
-  const canSubmit = model.length > 0 && plateNumber.length > 0 && !submitting;
+  // 백엔드 CAR.vin이 VARCHAR(17) NOT NULL이라(실제 VIN 규격과 동일) 정확히 17자여야 한다.
+  const canSubmit = model.length > 0 && plateNumber.length > 0 && vin.length === 17 && !submitting;
 
   const handlePickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -69,11 +71,24 @@ export function VehicleRegisterForm({ onSubmit, submitting = false }: VehicleReg
             placeholderTextColor={Brand.textMuted}
           />
         </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>차대번호(VIN)</Text>
+          <TextInput
+            style={styles.input}
+            value={vin}
+            onChangeText={(value) => setVin(value.toUpperCase())}
+            placeholder="차대번호 17자리 입력"
+            placeholderTextColor={Brand.textMuted}
+            autoCapitalize="characters"
+            maxLength={17}
+          />
+        </View>
       </View>
 
       <Pressable
         style={[styles.submitButton, !canSubmit && styles.submitButtonDisabled]}
-        onPress={() => onSubmit({ nickname: model, model, plateNumber })}
+        onPress={() => onSubmit({ nickname: model, model, plateNumber, vin })}
         disabled={!canSubmit}>
         <Text style={styles.submitButtonText}>차량 등록 완료</Text>
       </Pressable>

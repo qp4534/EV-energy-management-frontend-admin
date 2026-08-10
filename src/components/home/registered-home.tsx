@@ -10,8 +10,8 @@ type RegisteredHomeProps = {
   currentVehicleName: string;
   currentPlateNumber: string;
   chargingGuide: HomeChargingGuide;
-  estimatedLife: string;
-  batterySohProgress: number;
+  estimatedLife: string | null;
+  batterySohProgress: number | null;
   nearbyStations: Charger[];
   handleSwitchVehicle: () => void;
 };
@@ -97,13 +97,21 @@ export function RegisteredHome({
 
       {/* 3. 배터리 진단 카드 */}
       <View style={{ backgroundColor: '#ffffff', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#EAEFEA', marginBottom: 16 }}>
-        <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#999999', marginBottom: 4 }}>배터리 진단</Text> 
-        <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#222222', marginBottom: 10 }}>
-          예상 잔존 수명 {estimatedLife}년 (SOH: {Math.round(batterySohProgress * 100)}%)
-        </Text> 
-        <View style={{ width: '100%', height: 8, backgroundColor: '#F0F4E8', borderRadius: 4, overflow: 'hidden' }}>
-          <View style={{ width: `${batterySohProgress * 100}%`, height: '100%', backgroundColor: '#B2D8B2', borderRadius: 4 }} /> 
-        </View>
+        <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#999999', marginBottom: 4 }}>배터리 진단</Text>
+        {estimatedLife !== null && batterySohProgress !== null ? (
+          <>
+            <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#222222', marginBottom: 10 }}>
+              예상 잔존 수명 {estimatedLife}년 (SOH: {Math.round(batterySohProgress * 100)}%)
+            </Text>
+            <View style={{ width: '100%', height: 8, backgroundColor: '#F0F4E8', borderRadius: 4, overflow: 'hidden' }}>
+              <View style={{ width: `${batterySohProgress * 100}%`, height: '100%', backgroundColor: '#B2D8B2', borderRadius: 4 }} />
+            </View>
+          </>
+        ) : (
+          <Text style={{ fontSize: 13, color: '#999999', lineHeight: 18 }}>
+            아직 진단 정보가 없습니다. 차량 진단이 완료되면 여기에 표시됩니다.
+          </Text>
+        )}
       </View>
 
       {/* 🟢 4. 주변 충전소 카드 */}

@@ -22,14 +22,6 @@ function toReport(dto: BackendAiReportDto): Report {
   };
 }
 
-export async function markReportAsRead(reportId: string): Promise<void> {
-  if (!USE_MOCK) {
-    await apiClient.patch(`/api/ai-reports/${reportId}/read`);
-    return;
-  }
-  await mockDelay(undefined);
-}
-
 export async function getReports(): Promise<Report[]> {
   if (!USE_MOCK) {
     const { data } = await apiClient.get<BackendAiReportDto[]>('/api/ai-reports');
