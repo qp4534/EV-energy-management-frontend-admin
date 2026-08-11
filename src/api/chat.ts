@@ -1,9 +1,11 @@
 import { apiClient, mockDelay, USE_MOCK } from '@/api/client';
+import { ChatMessageResult, ChatSource } from '@/types/chat';
 
 type BackendChatMessageResponse = {
   answer: string;
   route: string | null;
   safetyLevel: string | null;
+  sources: ChatSource[] | null;
   fallbackUsed: boolean | null;
 };
 
@@ -31,18 +33,19 @@ export async function sendChatMessage(
   message: string,
   vehicleId?: string,
   conversationId?: string
-): Promise<string> {
+): Promise<ChatMessageResult> {
   if (!USE_MOCK) {
     const { data } = await apiClient.post<BackendChatMessageResponse>('/api/v1/chat/messages', {
       vehicleId: vehicleId ?? null,
       message,
       conversationId: conversationId ?? null,
     });
-    return data.answer;
+    return { answer: data.answer, sources: data.sources ?? [] };
   }
-  return mockDelay(
-    `[AI 챗봇 연동 완료] 입력하신 "${message}" 분석에 따른 최적의 배터리 충전 가이드라인입니다.`
-  );
+  return mockDelay({
+    answer: `[AI 챗봇 연동 완료] 입력하신 "${message}" 분석에 따른 최적의 배터리 충전 가이드라인입니다.`,
+    sources: [],
+  });
 }
 
 export async function getHomeChargingGuideMessage({
@@ -60,7 +63,7 @@ export async function getHomeChargingGuideMessage({
     return message;
   }
 
-  const answer = await sendChatMessage(
+  const { answer } = await sendChatMessage(
     [
       '현재 내 차 배터리 상태와 충전 상태를 기준으로 홈 충전 가이드 카드용 안내 문장만 작성해줘.',
       '1~2문장, 80자 이내로 작성하고 인사말, 제목, 마크다운은 사용하지 마.',

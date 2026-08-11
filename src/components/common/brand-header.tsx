@@ -7,7 +7,7 @@ type BrandHeaderProps = {
   title: string;
   showBack?: boolean;
   backRoute?: string;
-  rightIcon?: 'file' | 'bell' | 'none';
+  rightIcon?: 'file' | 'bell' | 'refresh' | 'none';
   onRightPress?: () => void;
 };
 
@@ -62,6 +62,13 @@ export function BrandHeader({
         {rightIcon === 'file' && (
           <Pressable onPress={onRightPress} hitSlop={Spacing.two} style={styles.rightButton}>
             <Feather name="file-text" size={20} color="white" style={styles.iconOpacity} />
+          </Pressable>
+        )}
+
+        {/* 챗봇 화면의 "대화 초기화" 버튼 */}
+        {rightIcon === 'refresh' && (
+          <Pressable onPress={onRightPress} hitSlop={Spacing.two} style={styles.rightButton}>
+            <Feather name="refresh-cw" size={18} color="white" style={styles.iconOpacity} />
           </Pressable>
         )}
       </View>

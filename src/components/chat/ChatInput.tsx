@@ -4,13 +4,14 @@ import { Platform, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
 interface ChatInputProps {
   onSend: (text: string) => void;
+  disabled?: boolean;
 }
 
-export default function ChatInput({ onSend }: ChatInputProps) {
+export default function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   const [input, setInput] = useState<string>('');
 
   const handleSend = () => {
-    if (!input.trim()) return;
+    if (!input.trim() || disabled) return;
     onSend(input);
     setInput('');
   };
@@ -22,10 +23,11 @@ export default function ChatInput({ onSend }: ChatInputProps) {
       {/* 💡 제안어 칩셋 영역 */}
       <View style={{ flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 4, flexWrap: 'wrap' }}>
         {suggestions.map((sug, i) => (
-          <TouchableOpacity 
-            key={i} 
-            onPress={() => onSend(sug)} 
-            style={{ 
+          <TouchableOpacity
+            key={i}
+            onPress={() => !disabled && onSend(sug)}
+            disabled={disabled}
+            style={{
               backgroundColor: '#FFFFFF', 
               paddingHorizontal: 14, 
               paddingVertical: 8, 
@@ -72,37 +74,40 @@ export default function ChatInput({ onSend }: ChatInputProps) {
             }) 
           }}
         >
-          <TextInput 
-            value={input} 
-            onChangeText={setInput} 
-            placeholder="충전 관련 궁금한 점을 물어보세요" 
+          <TextInput
+            value={input}
+            onChangeText={setInput}
+            placeholder="충전 관련 궁금한 점을 물어보세요"
             placeholderTextColor="#A0A0A0"
-            style={{ 
-              flex: 1, 
-              height: '100%', 
-              fontSize: 14, 
-              color: '#1F2937', 
-              paddingVertical: 0, 
-              margin: 0 
-            }} 
+            editable={!disabled}
+            style={{
+              flex: 1,
+              height: '100%',
+              fontSize: 14,
+              color: '#1F2937',
+              paddingVertical: 0,
+              margin: 0
+            }}
           />
         </View>
-        
+
         {/* 전송 버튼 */}
-        <TouchableOpacity 
-          onPress={handleSend} 
-          style={{ 
-            backgroundColor: '#CBE6CB', 
-            width: 50, 
-            height: 50, 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            borderRadius: 999, 
-            marginLeft: 8, 
-            ...Platform.select({ 
-              ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 3 }, 
-              android: { elevation: 2 } 
-            }) 
+        <TouchableOpacity
+          onPress={handleSend}
+          disabled={disabled || !input.trim()}
+          style={{
+            backgroundColor: '#CBE6CB',
+            width: 50,
+            height: 50,
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: 999,
+            marginLeft: 8,
+            opacity: disabled ? 0.5 : 1,
+            ...Platform.select({
+              ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 3 },
+              android: { elevation: 2 }
+            })
           }}
         >
           <Feather name="send" size={16} color="#113B29" />
