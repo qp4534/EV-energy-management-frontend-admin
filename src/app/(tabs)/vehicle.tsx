@@ -10,17 +10,28 @@ import { Brand } from '@/constants/theme';
 import { useVehicle } from '@/hooks/use-vehicle';
 import { useVehicleBatteryStatus } from '@/hooks/use-vehicle-battery-status';
 import { VehicleRegisterRequest } from '@/types/vehicle';
+import { getErrorMessage } from '@/utils/error-message';
 
 export default function VehicleScreen() {
   const { vehicle, vehicles, isRegistered, registerVehicle, removeVehicle, setPrimaryVehicle } = useVehicle();
   const { status, rul } = useVehicleBatteryStatus(vehicle?.id);
   const [isAdding, setIsAdding] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const showForm = !isRegistered || isAdding;
 
   const handleSubmit = async (request: VehicleRegisterRequest) => {
-    await registerVehicle(request);
-    setIsAdding(false);
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      await registerVehicle(request);
+      setIsAdding(false);
+    } catch (error) {
+      setSubmitError(getErrorMessage(error, '차량 등록에 실패했습니다.'));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleBack = () => {
@@ -44,7 +55,7 @@ export default function VehicleScreen() {
         />
         <View style={styles.content}>
           {showForm ? (
-            <VehicleRegisterForm onSubmit={handleSubmit} />
+            <VehicleRegisterForm onSubmit={handleSubmit} submitting={submitting} errorMessage={submitError} />
           ) : (
             vehicle && (
               <VehicleManagePanel

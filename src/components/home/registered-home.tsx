@@ -2,6 +2,7 @@ import { Charger } from '@/types/charger';
 import { HomeChargingGuide } from '@/utils/home-charging-guide';
 import { Vehicle } from '@/types/vehicle';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { Text, TouchableOpacity, View } from 'react-native';
 
@@ -65,13 +66,21 @@ export function RegisteredHome({
           </TouchableOpacity>
         </View>
 
-        <View style={{ width: '100%', height: 140, backgroundColor: '#EFEFEF', borderRadius: 12, justifyContent: 'center', alignItems: 'center' }}>
-          <View style={{ alignItems: 'center' }}>
-            <MaterialCommunityIcons name="car-side" size={48} color="#BBBBBB" /> 
-            <Text style={{ color: '#999999', fontSize: 11, marginTop: 4 }}>
-              (이미지 준비중)
-            </Text> 
-          </View>
+        <View style={{ width: '100%', height: 140, backgroundColor: '#EFEFEF', borderRadius: 12, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
+          {vehicle?.imageUrl ? (
+            <Image
+              source={{ uri: vehicle.imageUrl }}
+              style={{ width: '100%', height: '100%' }}
+              contentFit="cover"
+            />
+          ) : (
+            <View style={{ alignItems: 'center' }}>
+              <MaterialCommunityIcons name="car-side" size={48} color="#BBBBBB" />
+              <Text style={{ color: '#999999', fontSize: 11, marginTop: 4 }}>
+                (이미지 없음)
+              </Text>
+            </View>
+          )}
         </View>
       </View>
 
