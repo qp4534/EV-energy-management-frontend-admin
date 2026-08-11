@@ -9,13 +9,15 @@ import { VehicleRegisterRequest } from '@/types/vehicle';
 type VehicleRegisterFormProps = {
   onSubmit: (request: VehicleRegisterRequest) => void;
   submitting?: boolean;
+  errorMessage?: string | null;
 };
 
-export function VehicleRegisterForm({ onSubmit, submitting = false }: VehicleRegisterFormProps) {
+export function VehicleRegisterForm({ onSubmit, submitting = false, errorMessage = null }: VehicleRegisterFormProps) {
   const [model, setModel] = useState('');
   const [plateNumber, setPlateNumber] = useState('');
   const [vin, setVin] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [imageMimeType, setImageMimeType] = useState<string | null>(null);
 
   // 백엔드 CAR.vin이 VARCHAR(17) NOT NULL이라(실제 VIN 규격과 동일) 정확히 17자여야 한다.
   const canSubmit = model.length > 0 && plateNumber.length > 0 && vin.length === 17 && !submitting;
@@ -33,6 +35,7 @@ export function VehicleRegisterForm({ onSubmit, submitting = false }: VehicleReg
 
     if (!result.canceled && result.assets.length > 0) {
       setImageUri(result.assets[0].uri);
+      setImageMimeType(result.assets[0].mimeType ?? null);
     }
   };
 
@@ -66,8 +69,10 @@ export function VehicleRegisterForm({ onSubmit, submitting = false }: VehicleReg
           <TextInput
             style={styles.input}
             value={plateNumber}
-            onChangeText={setPlateNumber}
-            placeholder="차량 번호 입력"
+            // 공백 유무로 "123가1234"와 "123가 1234"가 다른 값으로 취급돼 중복 등록을
+            // 못 걸러내던 문제 - 입력 시점에 공백을 아예 없애서 항상 같은 값으로 저장한다.
+            onChangeText={(value) => setPlateNumber(value.replace(/\s/g, ''))}
+            placeholder="차량 번호 입력 (예: 123가1234)"
             placeholderTextColor={Brand.textMuted}
           />
         </View>
@@ -86,9 +91,11 @@ export function VehicleRegisterForm({ onSubmit, submitting = false }: VehicleReg
         </View>
       </View>
 
+      {errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+
       <Pressable
         style={[styles.submitButton, !canSubmit && styles.submitButtonDisabled]}
-        onPress={() => onSubmit({ nickname: model, model, plateNumber, vin })}
+        onPress={() => onSubmit({ nickname: model, model, plateNumber, vin, imageUri, imageMimeType })}
         disabled={!canSubmit}>
         <Text style={styles.submitButtonText}>차량 등록 완료</Text>
       </Pressable>
@@ -133,6 +140,11 @@ const styles = StyleSheet.create({
   },
   field: {
     gap: 6,
+  },
+  errorText: {
+    fontSize: 13,
+    color: '#D32F2F',
+    textAlign: 'center',
   },
   label: {
     fontSize: 13,

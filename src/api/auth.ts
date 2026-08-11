@@ -1,4 +1,5 @@
 import { apiClient, mockDelay, USE_MOCK } from '@/api/client';
+import { guessImageContentType, putImageToPresignedUrl } from '@/api/upload';
 import { useAuthStore } from '@/store/auth-store';
 import { FindIdResult, LoginRequest, LoginResponse, SignupInfoRequest, User } from '@/types/auth';
 
@@ -186,16 +187,7 @@ export async function updateProfile(payload: ProfileUpdatePayload): Promise<User
   });
 }
 
-// 프로필 사진을 S3에 올리고, 저장용 공개 URL을 반환한다. 실제 파일 바이트는 백엔드를 거치지 않고
-// 발급받은 presigned URL로 클라이언트가 S3에 직접 PUT한다 (Authorization 헤더가 붙으면 S3가
-// 서명 불일치로 거부하므로 apiClient가 아닌 순수 fetch를 사용).
-function guessImageContentType(uri: string): string {
-  const ext = uri.split('.').pop()?.toLowerCase();
-  if (ext === 'png') return 'image/png';
-  if (ext === 'webp') return 'image/webp';
-  return 'image/jpeg';
-}
-
+// 프로필 사진을 S3에 올리고, 저장용 공개 URL을 반환한다.
 export async function uploadProfileImage(localUri: string, mimeType?: string | null): Promise<string> {
   if (USE_MOCK) {
     return mockDelay(localUri);
@@ -207,18 +199,7 @@ export async function uploadProfileImage(localUri: string, mimeType?: string | n
     { contentType }
   );
 
-  const file = await fetch(localUri);
-  const blob = await file.blob();
-  const uploadResponse = await fetch(data.uploadUrl, {
-    method: 'PUT',
-    headers: { 'Content-Type': contentType },
-    body: blob,
-  });
-  if (!uploadResponse.ok) {
-    // fetch는 4xx/5xx에도 정상적으로 resolve하므로, 상태 코드를 직접 확인하지 않으면
-    // S3 업로드가 실패해도 모르고 넘어가서 존재하지 않는 URL을 프로필에 저장하게 된다.
-    throw new Error(`S3 업로드 실패 (${uploadResponse.status})`);
-  }
+  await putImageToPresignedUrl(data.uploadUrl, localUri, contentType);
 
   return data.imageUrl;
 }
