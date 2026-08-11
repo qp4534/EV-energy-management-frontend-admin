@@ -2,9 +2,11 @@ import * as chatApi from '@/api/chat';
 import { BrandHeader } from '@/components/common/brand-header';
 import { useAuthStore } from '@/store/auth-store';
 import { useVehicleStore } from '@/store/vehicle-store';
+import { ChatSource } from '@/types/chat';
 import { Feather } from '@expo/vector-icons';
+import { isAxiosError } from 'axios';
 import { useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Text, TouchableOpacity, View } from 'react-native';
 
 import ChatInput from '@/components/chat/ChatInput';
@@ -14,6 +16,31 @@ interface Message {
   id: string;
   sender: 'ai' | 'user';
   text: string;
+  sources?: ChatSource[];
+  isError?: boolean;
+}
+
+const WELCOME_MESSAGE: Message = {
+  id: 'welcome',
+  sender: 'ai',
+  text: '안녕하세요! 미정이 AI 충전 가이드 챗봇입니다. 무엇이 궁금하신가요?',
+};
+
+function createConversationId() {
+  return `conv-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function chatErrorMessage(error: unknown): string {
+  if (isAxiosError<{ message?: string }>(error)) {
+    if (error.response?.status === 401) {
+      return '로그인 정보가 만료되었습니다. 다시 로그인한 뒤 이용해주세요.';
+    }
+    if (error.code === 'ECONNABORTED') {
+      return '답변 생성 시간이 길어지고 있습니다. 잠시 후 다시 질문해주세요.';
+    }
+    return error.response?.data?.message ?? '현재 챗봇에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.';
+  }
+  return '현재 챗봇에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.';
 }
 
 export default function GuideChatScreen() {
@@ -22,37 +49,43 @@ export default function GuideChatScreen() {
   const { vehicle } = useVehicleStore();
 
   const [messages, setMessages] = useState<Message[]>([]);
-  // 백엔드가 conversationId를 발급해주지 않아서, 같은 대화로 이어지도록
-  // 화면에 처음 진입할 때 프론트에서 하나 만들어 계속 재사용한다.
-  const conversationIdRef = useRef(`conv-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const [isSending, setIsSending] = useState(false);
+  // 백엔드가 conversationId를 발급해주지 않아서, 같은 대화로 이어지도록 프론트에서 하나
+  // 만들어 재사용한다. "대화 초기화"를 누르면 새 id를 발급해 완전히 새 대화로 취급한다.
+  const [conversationId, setConversationId] = useState(createConversationId);
 
   // 차량 여부에 따른 초기 웰컴 메시지 세팅
   useEffect(() => {
     if (vehicle) {
-      setMessages([
-        { id: '1', sender: 'ai', text: '안녕하세요! 미정이 AI 충전 가이드 챗봇입니다. 무엇이 궁금하신가요?' }
-      ]);
+      setMessages([WELCOME_MESSAGE]);
     }
   }, [vehicle]);
 
+  const resetConversation = () => {
+    setMessages([WELCOME_MESSAGE]);
+    setConversationId(createConversationId());
+  };
+
   const fetchAiChatbotResponse = async (userText: string) => {
+    setIsSending(true);
     try {
-      const answer = await chatApi.sendChatMessage(userText, vehicle?.id, conversationIdRef.current);
-      setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'ai', text: answer }]);
+      const { answer, sources } = await chatApi.sendChatMessage(userText, vehicle?.id, conversationId);
+      setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'ai', text: answer, sources }]);
     } catch (e) {
-      console.log("AI Chat API Error", e);
       setMessages(prev => [
         ...prev,
-        { id: Date.now().toString(), sender: 'ai', text: '답변을 가져오지 못했습니다. 잠시 후 다시 시도해주세요.' },
+        { id: Date.now().toString(), sender: 'ai', text: chatErrorMessage(e), isError: true },
       ]);
+    } finally {
+      setIsSending(false);
     }
   };
 
   const handleSendMessage = (text: string) => {
     const cleanText = text ? text.trim() : '';
-    if (!cleanText) return; 
-    
-    setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'user', text: cleanText }]);  
+    if (!cleanText || isSending) return;
+
+    setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'user', text: cleanText }]);
     fetchAiChatbotResponse(cleanText);
   };
 
@@ -63,7 +96,13 @@ export default function GuideChatScreen() {
       style={{ flex: 1, backgroundColor: '#FAF9F5' }}
     >
       
-      <BrandHeader title="AI 충전 가이드" showBack backRoute="/(tabs)/home" />
+      <BrandHeader
+        title="AI 충전 가이드"
+        showBack
+        backRoute="/(tabs)/home"
+        rightIcon={vehicle ? 'refresh' : 'none'}
+        onRightPress={resetConversation}
+      />
 
       {/* 🛑 차량이 없을 경우 보여줄 UI 분기 */}
       {!vehicle ? (
@@ -90,8 +129,8 @@ export default function GuideChatScreen() {
         </View>
       ) : (
         <>
-          <MessageList messages={messages} />
-          <ChatInput onSend={handleSendMessage} />
+          <MessageList messages={messages} isSending={isSending} />
+          <ChatInput onSend={handleSendMessage} disabled={isSending} />
         </>
       )}
     
