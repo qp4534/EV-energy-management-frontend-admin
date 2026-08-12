@@ -24,6 +24,7 @@ function toReport(dto: BackendAiReportDto): Report {
 
 export async function getReports(): Promise<Report[]> {
   if (!USE_MOCK) {
+    // 백엔드가 이미 role 기준으로 스코핑해서 이용자에게는 본인 차량 보고서만 내려준다.
     const { data } = await apiClient.get<BackendAiReportDto[]>('/api/ai-reports');
     return data.map(toReport);
   }
@@ -35,4 +36,13 @@ export async function getReports(): Promise<Report[]> {
       createdAt: '2026-08-01',
     },
   ]);
+}
+
+export async function getReport(id: string): Promise<Report> {
+  if (!USE_MOCK) {
+    const { data } = await apiClient.get<BackendAiReportDto>(`/api/ai-reports/${id}`);
+    return toReport(data);
+  }
+  const list = await getReports();
+  return list.find((item) => item.id === id) ?? list[0];
 }
