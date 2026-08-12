@@ -148,7 +148,7 @@ export default function MapScreen() {
           <DemandBadge demand={demand} />
         </View>
 
-        <StationBottomSheet stations={stations} isLoading={isLoading} />
+        <StationBottomSheet stations={stations} isLoading={isLoading} demand={demand} />
       </View>
     </View>
   );
