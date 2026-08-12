@@ -149,11 +149,29 @@ export default function MyPageIndexScreen() {
         </TouchableOpacity>
 
         {/* 2. 차량 관리 */}
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => router.push('/(tabs)/mypage/vehicle-manage')}
           style={styles.menuCard}
         >
           <Text style={styles.menuText}>차량 관리</Text>
+          <Feather name="chevron-right" size={20} color="#113B29" />
+        </TouchableOpacity>
+
+        {/* 2-1. 공지사항 */}
+        <TouchableOpacity
+          onPress={() => router.push('/notice/list')}
+          style={styles.menuCard}
+        >
+          <Text style={styles.menuText}>공지사항</Text>
+          <Feather name="chevron-right" size={20} color="#113B29" />
+        </TouchableOpacity>
+
+        {/* 2-2. 보고서 */}
+        <TouchableOpacity
+          onPress={() => router.push('/(tabs)/mypage/reports')}
+          style={styles.menuCard}
+        >
+          <Text style={styles.menuText}>보고서</Text>
           <Feather name="chevron-right" size={20} color="#113B29" />
         </TouchableOpacity>
 

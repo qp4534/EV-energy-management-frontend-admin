@@ -1,10 +1,10 @@
 import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { getBatteryPassport } from '@/api/battery';
-import { getReports } from '@/api/report';
+import { getReport, getReports } from '@/api/report';
 import { useVehicleStore } from '@/store/vehicle-store';
 
 import { Report } from '@/types/report';
@@ -12,6 +12,9 @@ import { Report } from '@/types/report';
 export default function ReportScreen() {
   const router = useRouter();
   const { vehicle } = useVehicleStore();
+  // 보고서 목록(마이페이지)에서 특정 보고서를 지정해서 들어온 경우엔 그 보고서를,
+  // 없으면(홈 화면 팝업 "자세히 보기") 기존처럼 최신 보고서를 보여준다.
+  const { id } = useLocalSearchParams<{ id?: string }>();
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [report, setReport] = useState<Report | null>(null);
@@ -21,14 +24,12 @@ export default function ReportScreen() {
     async function loadReportDetail() {
       try {
         setIsLoading(true);
-        const [reportList, batteryData] = await Promise.all([
-          getReports(),
+        const [reportResult, batteryData] = await Promise.all([
+          id ? getReport(id) : getReports().then((list) => list[0] ?? null),
           getBatteryPassport(vehicle?.id || 'default'),
         ]);
 
-        if (reportList && reportList.length > 0) {
-          setReport(reportList[0]);
-        }
+        setReport(reportResult);
         setBatteryInfo(batteryData);
       } catch (error) {
         console.error('보고서 상세를 불러오는 중 에러 발생:', error);
@@ -38,7 +39,7 @@ export default function ReportScreen() {
     }
 
     loadReportDetail();
-  }, [vehicle]);
+  }, [vehicle, id]);
 
   if (isLoading) {
     return (
