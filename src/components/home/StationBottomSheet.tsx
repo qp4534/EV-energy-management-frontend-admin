@@ -1,3 +1,4 @@
+import { DemandLevel } from '@/api/demand';
 import { Charger } from '@/types/charger';
 import { Feather } from '@expo/vector-icons';
 import { useState } from 'react';
@@ -8,9 +9,10 @@ import { ChargerListItem } from '../charger-list-item';
 interface StationBottomSheetProps {
   stations: Charger[];
   isLoading: boolean;
+  demand?: DemandLevel | null; // 충전소별 혼잡도 배지 계산에 같이 쓰임 (charger-list-item 참고)
 }
 
-export default function StationBottomSheet({ stations, isLoading }: StationBottomSheetProps) {
+export default function StationBottomSheet({ stations, isLoading, demand }: StationBottomSheetProps) {
   const [isOpen, setIsOpen] = useState<boolean>(true);
 
   return (
@@ -60,10 +62,11 @@ export default function StationBottomSheet({ stations, isLoading }: StationBotto
             contentContainerStyle={{ paddingBottom: 10 }} 
           >
             {stations.map((item, idx) => (
-              <ChargerListItem 
-                key={item.id} 
-                charger={item} 
-                isLast={idx === stations.length - 1} 
+              <ChargerListItem
+                key={item.id}
+                charger={item}
+                isLast={idx === stations.length - 1}
+                demand={demand}
               />
             ))}
           </ScrollView>
