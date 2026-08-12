@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 
-import { getNotifications } from '@/api/notification';
+import { getNotifications, markNotificationAsRead } from '@/api/notification';
 import { getReports } from '@/api/report';
 import { ReportModal } from '@/components/modal/ReportModal';
 
@@ -139,8 +139,17 @@ export default function NotificationListScreen() {
                   opacity: item.isRead ? 0.75 : 1
                 }}
                 onPress={() => {
+                  // 탭한 즉시 읽음 처리 (목록/홈 배지가 바로 반영되도록 낙관적 업데이트 후 서버에 반영)
+                  if (!item.isRead) {
+                    setNotifications((prev) =>
+                      prev.map((n) => (n.id === item.id ? { ...n, isRead: true } : n))
+                    );
+                    markNotificationAsRead(item.id).catch(() => {});
+                  }
                   if (typeKey === '경고') {
                     setIsReportModalVisible(true);
+                  } else {
+                    router.push(`/notification/${item.id}`);
                   }
                 }}
               >
