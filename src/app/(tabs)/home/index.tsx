@@ -1,7 +1,7 @@
 import * as Location from 'expo-location';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StatusBar, Text, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, AppState, ScrollView, StatusBar, Text, View } from 'react-native';
 
 import { RegisteredHome } from '@/components/home/registered-home';
 import { UnregisteredHome } from '@/components/home/unregistered-home';
@@ -20,7 +20,7 @@ import { Report } from '@/types/report';
 import { getBatteryPassport } from '@/api/battery';
 import { getHomeChargingGuideMessage } from '@/api/chat';
 import { getNearbyChargers } from '@/api/charger';
-import { getNotifications } from '@/api/notification';
+import { getNotifications, markNotificationAsRead } from '@/api/notification';
 import { getReports } from '@/api/report';
 import { getLatestTwinState } from '@/api/twin';
 import { BrandHeader } from '@/components/common/brand-header';
@@ -53,6 +53,44 @@ export default function HomeScreen() {
 
   // 최신 알림 상태를 저장할 변수
   const [latestNotification, setLatestNotification] = useState<Notification | null>(null);
+  // 종 아이콘 빨간 점 표시 여부
+  const [hasUnreadNotification, setHasUnreadNotification] = useState(false);
+  // 폴링/재진입 시 같은 알림으로 팝업이 중복해서 뜨지 않도록 마지막으로 팝업을 띄운 알림 id를 기억
+  const lastPoppedNotificationIdRef = useRef<string | null>(null);
+
+  // 알림 목록을 받아서 "최신 알림"과 "안 읽은 알림 있음" 배지 상태에 반영한다.
+  // 초기 로드/폴링/탭 재진입 시 공통으로 쓴다.
+  const applyNotifications = useCallback((list: Notification[]) => {
+    setLatestNotification(list.length > 0 ? list[0] : null);
+    setHasUnreadNotification(list.some((item) => !item.isRead));
+  }, []);
+
+  // 앱을 계속 켜둔 상태에서도 새 알림(웹 관제자 액션 등)을 어느 정도 실시간처럼 반영하기 위한
+  // 폴링. 진짜 푸시(FCM)가 아니라 "홈 화면에 머무는 동안 주기적으로 다시 확인"하는 수준이다.
+  const pollNotifications = useCallback(async () => {
+    if (AppState.currentState !== 'active') return;
+    try {
+      const list = await getNotifications();
+      applyNotifications(list);
+    } catch (error) {
+      console.warn('알림 폴링 실패:', error);
+    }
+  }, [applyNotifications]);
+
+  useEffect(() => {
+    if (!isRegistered) return;
+    const interval = setInterval(pollNotifications, 20000);
+    return () => clearInterval(interval);
+  }, [isRegistered, pollNotifications]);
+
+  // 다른 탭에 있다가 홈으로 돌아왔을 때도 바로 최신 알림을 반영한다.
+  useFocusEffect(
+    useCallback(() => {
+      if (isRegistered) {
+        pollNotifications();
+      }
+    }, [isRegistered, pollNotifications])
+  );
 
   // 데이터 바인딩 로직
   useEffect(() => {
@@ -105,11 +143,9 @@ export default function HomeScreen() {
           : null
       );
       setBatteryInfo(batteryData);
-      setLatestNotification(
-        notificationResult.status === 'fulfilled' && notificationResult.value.length > 0
-          ? notificationResult.value[0]
-          : null
-      );
+      if (notificationResult.status === 'fulfilled') {
+        applyNotifications(notificationResult.value);
+      }
       const guideInput = {
         twin: twinData,
         passportTemperatureC: batteryData?.temperatureC,
@@ -149,15 +185,26 @@ export default function HomeScreen() {
     };
   }, [isRegistered, vehicle?.id]);
 
-  // 알림 단계 상태 자동 모달 레이어 트리거 연동
+  // 알림 단계 상태 자동 모달 레이어 트리거 연동. "이미 읽은 알림"이면 새로고침/재방문해도
+  // 다시 뜨지 않도록 서버의 isRead를 기준으로 판단한다 (세션 메모리만 쓰면 새로고침 시
+  // 초기화돼서 매번 다시 뜨는 문제가 있었다). lastPoppedNotificationIdRef는 같은 세션 안에서
+  // 읽음 처리 API가 아직 반영되기 전에 폴링이 겹쳐 두 번 뜨는 것만 막는 보조 장치.
   useEffect(() => {
-    if (isRegistered && !isLoading && latestNotification) {
+    if (
+      isRegistered &&
+      !isLoading &&
+      latestNotification &&
+      !latestNotification.isRead &&
+      latestNotification.id !== lastPoppedNotificationIdRef.current
+    ) {
       const timer = setTimeout(() => {
         if (latestNotification.type === '긴급') {
           // 1순위: 긴급일시 팝업 작동
+          lastPoppedNotificationIdRef.current = latestNotification.id;
           setShowEmergencyModal(true);
         } else if (latestNotification.type === '경고') {
           // 2순위: 경고이면서 진단 보고서 발행 완료 시 팝업 작동
+          lastPoppedNotificationIdRef.current = latestNotification.id;
           setShowReportModal(true);
         }
       }, 800);
@@ -165,6 +212,15 @@ export default function HomeScreen() {
       return () => clearTimeout(timer);
     }
   }, [isRegistered, isLoading, latestNotification]);
+
+  // 자동 팝업을 닫으면 그 알림을 읽음 처리한다 - 서버에 isRead가 반영돼야 새로고침해도
+  // 다시 뜨지 않는다.
+  const acknowledgeLatestNotification = useCallback(() => {
+    if (latestNotification && !latestNotification.isRead) {
+      markNotificationAsRead(latestNotification.id).catch(() => {});
+      pollNotifications();
+    }
+  }, [latestNotification, pollNotifications]);
 
   // 🚗 등록된 차량 중 하나를 대표 차량으로 선택하는 창을 엽니다.
   // (Alert.alert는 웹 빌드의 react-native-web에서 아무 동작도 하지 않는 no-op이라 커스텀 모달로 구현)
@@ -186,10 +242,11 @@ export default function HomeScreen() {
     <View style={{ flex: 1, backgroundColor: '#F4F6F3' }}>
       <StatusBar barStyle="light-content" />
 
-      <BrandHeader 
-        title={`안녕하세요, ${currentUserName}님`} 
-        rightIcon="bell" 
-        onRightPress={() => router.push('/notification/list')} 
+      <BrandHeader
+        title={`안녕하세요, ${currentUserName}님`}
+        rightIcon="bell"
+        onRightPress={() => router.push('/notification/list')}
+        showBadge={hasUnreadNotification}
       />
 
       {/* 메인 뷰포트 - 분리된 홈 컴포넌트 렌더링 영역 */}
@@ -215,17 +272,25 @@ export default function HomeScreen() {
       </ScrollView>
 
       {/* 공통 팝업 모달 레이어 */}
-      <EmergencyModal 
-        visible={showEmergencyModal} 
-        onClose={() => setShowEmergencyModal(false)} 
-        temperature={batteryInfo?.temperatureC ?? 95}
+      <EmergencyModal
+        visible={showEmergencyModal}
+        onClose={() => {
+          setShowEmergencyModal(false);
+          acknowledgeLatestNotification();
+        }}
+        title={latestNotification?.title ?? '긴급 상황 발생'}
+        message={latestNotification?.body ?? '즉시 확인이 필요합니다.'}
       />
 
       <ReportModal
         visible={showReportModal}
-        onClose={() => setShowReportModal(false)}
+        onClose={() => {
+          setShowReportModal(false);
+          acknowledgeLatestNotification();
+        }}
         onDetailPress={() => {
           setShowReportModal(false);
+          acknowledgeLatestNotification();
           router.push('/(tabs)/home/report');
         }}
         vehicleModel={currentVehicleName}

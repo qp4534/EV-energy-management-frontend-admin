@@ -9,6 +9,8 @@ type BrandHeaderProps = {
   backRoute?: string;
   rightIcon?: 'file' | 'bell' | 'refresh' | 'none';
   onRightPress?: () => void;
+  /** 안 읽은 알림이 있을 때 종 아이콘에 빨간 점을 띄운다 (rightIcon="bell"일 때만 의미 있음). */
+  showBadge?: boolean;
 };
 
 export function BrandHeader({
@@ -17,6 +19,7 @@ export function BrandHeader({
   backRoute,
   rightIcon = 'none',
   onRightPress,
+  showBadge = false,
 }: BrandHeaderProps) {
   const router = useRouter();
 
@@ -39,8 +42,9 @@ export function BrandHeader({
 
         {/* 홈 화면처럼 상단 로고 옆에 알림 아이콘이 붙는 경우 */}
         {rightIcon === 'bell' && (
-          <Pressable onPress={onRightPress} hitSlop={Spacing.two}>
+          <Pressable onPress={onRightPress} hitSlop={Spacing.two} style={styles.bellWrapper}>
             <Feather name="bell" size={22} color="white" style={styles.iconOpacity} />
+            {showBadge && <View style={styles.badgeDot} />}
           </Pressable>
         )}
       </View>
@@ -140,5 +144,19 @@ const styles = StyleSheet.create({
   },
   iconOpacity: {
     opacity: 0.9,
+  },
+  bellWrapper: {
+    position: 'relative',
+  },
+  badgeDot: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: '#FF4D4D',
+    borderWidth: 1.5,
+    borderColor: '#113B29',
   },
 });

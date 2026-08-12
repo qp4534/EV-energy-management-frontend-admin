@@ -4,10 +4,11 @@ import { Modal, Text, TouchableOpacity, View } from 'react-native';
 interface EmergencyModalProps {
   visible: boolean;
   onClose: () => void;
-  temperature: number;
+  title: string;
+  message: string;
 }
 
-export function EmergencyModal({ visible, onClose, temperature }: EmergencyModalProps) {
+export function EmergencyModal({ visible, onClose, title, message }: EmergencyModalProps) {
   return (
     <Modal
       transparent={true}
@@ -41,11 +42,11 @@ export function EmergencyModal({ visible, onClose, temperature }: EmergencyModal
             <MaterialCommunityIcons name="fire" size={42} color="#DC2626" />
           </View>
 
-          {/* 타이틀 및 설명 문구 */}
-          <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#DC2626', marginBottom: 12 }}>긴급 화재 위험 감지</Text>
-          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#113B29', marginBottom: 8, textAlign: 'center' }}>배터리 온도가 위험 수준입니다</Text>
+          {/* 타이틀 및 설명 문구 - 실제로 이 팝업을 띄운 알림의 title/body를 그대로 보여준다 */}
+          <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#DC2626', marginBottom: 12 }}>긴급 알림</Text>
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#113B29', marginBottom: 8, textAlign: 'center' }}>{title}</Text>
           <Text style={{ fontSize: 14, color: '#4A6B53', textAlign: 'center', lineHeight: 22, marginBottom: 24, fontWeight: '500' }}>
-            배터리온도 <Text style={{ fontWeight: 'bold', color: '#DC2626' }}>{temperature}°C</Text> 즉시 확인이 필요합니다.
+            {message}
           </Text>
 
           {/* 하단 붉은색 확인하기 버튼 */}
