@@ -1,5 +1,6 @@
 import * as authApi from '@/api/auth';
 import { BrandHeader } from '@/components/common/brand-header';
+import { useBottomTabInset } from '@/hooks/use-bottom-tab-inset';
 import { useAuthStore } from '@/store/auth-store';
 import { Feather } from '@expo/vector-icons';
 import { Image } from 'expo-image';
@@ -9,6 +10,7 @@ import { Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpa
 
 export default function MyPageIndexScreen() {
   const router = useRouter();
+  const bottomInset = useBottomTabInset();
   // Zustand 스토어에서 유저 데이터와 액션 함수 가져오기
   const { user, updateUser, logout, withdraw } = useAuthStore();
 
@@ -102,7 +104,7 @@ export default function MyPageIndexScreen() {
 
       <ScrollView 
         style={{ flex: 1, paddingHorizontal: 24 }} 
-        contentContainerStyle={{ paddingBottom: 120, paddingTop: 16 }}
+        contentContainerStyle={{ paddingBottom: bottomInset, paddingTop: 16 }}
         showsVerticalScrollIndicator={false}
       >
         {/* 🟡 유저 프로필 영역 */}

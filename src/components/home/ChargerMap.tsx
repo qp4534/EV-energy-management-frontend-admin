@@ -5,11 +5,13 @@ import { Platform, Text, View } from 'react-native';
 // 웹 브라우저 튕김 방지용 네이티브 지도 동적 컴포넌트 처리
 let MapView: any = View;
 let Marker: any = View;
+let PROVIDER_GOOGLE: string | undefined;
 if (Platform.OS !== 'web') {
   try {
     const Maps = require('react-native-maps');
     MapView = Maps.default;
     Marker = Maps.Marker;
+    PROVIDER_GOOGLE = Maps.PROVIDER_GOOGLE;
   } catch (e) {
     console.error('네이티브 지도 라이브러리를 로드하지 못했습니다.', e);
   }
@@ -41,6 +43,7 @@ export default function ChargerMap({ mapRef, currentLocation, stations }: Charge
   return (
     <MapView
       ref={mapRef}
+      provider={PROVIDER_GOOGLE}
       style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
       initialRegion={currentLocation}
       showsUserLocation={true}

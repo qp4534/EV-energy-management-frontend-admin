@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Tabs, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useVehicle } from '@/hooks/use-vehicle';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
@@ -10,6 +11,10 @@ import { usePushNotifications } from '@/hooks/use-push-notifications';
 export default function TabsLayout() {
   const segments = useSegments();
   const { fetchVehicles } = useVehicle();
+  // tabBarStyle에 height/paddingBottom을 직접 지정하면 React Navigation이 자동으로 넣어주던
+  // safe area 패딩이 꺼진다 - 안드로이드 제스처바/3버튼 내비게이션 높이만큼 직접 더해줘야
+  // 탭바가 시스템 버튼에 가려지거나 겹치지 않는다.
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     fetchVehicles();
@@ -18,16 +23,28 @@ export default function TabsLayout() {
   // 로그인된 상태(이 레이아웃이 마운트된 상태)에서만 푸시 토큰을 등록한다.
   usePushNotifications();
 
-  // 현재 활성화된 화면이 'guide-chat' 인지 확인
-  // segments 배열의 마지막 요소가 'guide-chat'인지 체크
-  const isGuideChatActive = segments[segments.length - 1] === 'guide-chat';
+  // 현재 화면이 guide-chat이나 지도(map)인지 확인 - 둘 다 자체적으로 화면 하단에
+  // 떠 있는 UI(채팅 입력창 / 충전소 바텀시트)를 갖고 있어서, 앱의 플로팅 탭바까지 같이
+  // 떠 있으면 서로 겹쳐서 바텀시트를 접었다 펼 때 탭바에 가려 탭이 안 되는 문제가 있었다.
+  const lastSegment = segments[segments.length - 1];
+  const hideTabBar = lastSegment === 'guide-chat' || lastSegment === 'map';
 
   return (
     <Tabs
+      // 파일 등록 순서상 'vehicle'이 첫 탭이라 로그인 직후 기본으로 그쪽으로 가버렸다
+      // - 홈 탭을 시작 화면으로 지정한다.
+      initialRouteName="home"
       screenOptions={{
         headerShown: false,
-        // guide-chat 화면일 때만 tabBarStyle을 숨김({ display: 'none' }) 처리
-        tabBarStyle: isGuideChatActive ? { display: 'none' } : styles.tabBar,
+        tabBarStyle: hideTabBar
+          ? { display: 'none' }
+          : [
+              styles.tabBar,
+              {
+                height: 85 + insets.bottom,
+                paddingBottom: (Platform.OS === 'ios' ? 25 : 15) + insets.bottom,
+              },
+            ],
         tabBarActiveTintColor: '#113B29', 
         tabBarInactiveTintColor: '#888888',
         tabBarShowLabel: true,
@@ -110,12 +127,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: 85,
-    backgroundColor: '#EDF2EC', 
+    backgroundColor: '#EDF2EC',
     borderTopWidth: 0,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    paddingBottom: Platform.OS === 'ios' ? 25 : 15,
     paddingTop: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },

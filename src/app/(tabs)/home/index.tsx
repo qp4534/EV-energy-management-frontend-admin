@@ -24,11 +24,13 @@ import { getNotifications, markNotificationAsRead } from '@/api/notification';
 import { getReports } from '@/api/report';
 import { getLatestTwinState } from '@/api/twin';
 import { BrandHeader } from '@/components/common/brand-header';
+import { useBottomTabInset } from '@/hooks/use-bottom-tab-inset';
 import { BatteryPassport } from '@/types/battery';
 import { buildHomeChargingGuide, HomeChargingGuide } from '@/utils/home-charging-guide';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const bottomInset = useBottomTabInset();
   const { user } = useAuthStore();
   const { vehicle, vehicles, isRegistered, setPrimaryVehicle } = useVehicleStore();
 
@@ -252,7 +254,7 @@ export default function HomeScreen() {
       {/* 메인 뷰포트 - 분리된 홈 컴포넌트 렌더링 영역 */}
       <ScrollView
         style={{ flex: 1, paddingHorizontal: 24 }} 
-        contentContainerStyle={{ paddingBottom: 120, paddingTop: 16 }} 
+        contentContainerStyle={{ paddingBottom: bottomInset, paddingTop: 16 }}
         showsVerticalScrollIndicator={false}
       >
         {!isRegistered ? (

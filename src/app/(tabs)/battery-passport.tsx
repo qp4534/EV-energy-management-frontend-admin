@@ -6,12 +6,14 @@ import { BatterySohRing } from '@/components/battery-soh-ring';
 import { StatusBadge } from '@/components/common/status-badge';
 import { Brand, Spacing } from '@/constants/theme';
 import { useBatteryPassport } from '@/hooks/use-battery-passport';
+import { useBottomTabInset } from '@/hooks/use-bottom-tab-inset';
 import { formatRul, getBatteryStatus } from '@/utils/format-battery';
 import { maskName } from '@/utils/format-name';
 
 export default function BatteryPassportScreen() {
   const { user, vehicle, passport, loading } = useBatteryPassport();
   const status = passport ? getBatteryStatus(passport.rul) : null;
+  const bottomInset = useBottomTabInset();
 
   return (
     <View style={styles.container}>
@@ -24,7 +26,7 @@ export default function BatteryPassportScreen() {
           <Text style={styles.bannerTitle}>배터리 여권</Text>
         </View>
 
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView contentContainerStyle={[styles.content, { paddingBottom: bottomInset }]}>
           {vehicle && passport && (
             <>
               <View style={styles.card}>

@@ -4,13 +4,15 @@ import { useState } from 'react';
 import * as authApi from '@/api/auth';
 import { FindIdResult } from '@/types/auth';
 import { getErrorMessage } from '@/utils/error-message';
+import { formatPhoneNumber } from '@/utils/format-phone';
 
 type BirthDate = { year: number | null; month: number | null; day: number | null };
 
 export function useFindId() {
   const [name, setName] = useState('');
   const [birthDate, setBirthDate] = useState<BirthDate>({ year: null, month: null, day: null });
-  const [phone, setPhone] = useState('');
+  const [phone, setPhoneRaw] = useState('');
+  const setPhone = (value: string) => setPhoneRaw(formatPhoneNumber(value));
   const [result, setResult] = useState<FindIdResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);

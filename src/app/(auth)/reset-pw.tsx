@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { BrandInput } from '@/components/common/brand-input';
 import { Header } from '@/components/common/header';
@@ -43,6 +43,7 @@ export default function ResetPasswordScreen() {
         backgroundColor={Brand.background}
       />
 
+      <KeyboardAvoidingView style={styles.keyboardAvoider} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {done ? (
           <ResultPanel
@@ -103,6 +104,7 @@ export default function ResetPasswordScreen() {
           </View>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -111,6 +113,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Brand.background,
+  },
+  keyboardAvoider: {
+    flex: 1,
   },
   content: {
     flexGrow: 1,

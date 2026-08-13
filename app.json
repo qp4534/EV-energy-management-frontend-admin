@@ -45,7 +45,13 @@
           "photosPermission": "차량 사진을 등록하기 위해 사진첩 접근 권한이 필요합니다."
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "react-native-maps",
+        {
+          "androidGoogleMapsApiKey": "AIzaSyAB73CWM92xbwACElvypMa8dsvnLVln1oE"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

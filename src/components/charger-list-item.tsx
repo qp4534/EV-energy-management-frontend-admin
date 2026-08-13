@@ -1,13 +1,14 @@
 import { ThemedText } from '@/components/themed-text';
 import { Charger } from '@/types/charger';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 type ChargerListItemProps = {
   charger: Charger;
   isLast?: boolean; // 하단 테두리 분기용 추가
+  onPress?: () => void;
 };
 
-export function ChargerListItem({ charger, isLast }: ChargerListItemProps) {
+export function ChargerListItem({ charger, isLast, onPress }: ChargerListItemProps) {
   const isAvailable = charger.isAvailable;
   const statusText = isAvailable ? '이용가능' : '이용불가';
   const displayDistance = charger.distanceKm ? `${charger.distanceKm} km` : '0 km';
@@ -15,7 +16,9 @@ export function ChargerListItem({ charger, isLast }: ChargerListItemProps) {
     charger.waitingCount != null ? `대기 ${charger.waitingCount}대` : null;
 
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
       style={[
         styles.rowContainer,
         {
@@ -51,7 +54,7 @@ export function ChargerListItem({ charger, isLast }: ChargerListItemProps) {
           {statusText}
         </ThemedText>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
