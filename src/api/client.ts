@@ -7,6 +7,9 @@ export const USE_MOCK = process.env.EXPO_PUBLIC_USE_MOCK !== 'false';
 
 export const apiClient = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_URL ?? 'https://api.example.com',
+  // 기본값은 무제한 대기라, 백엔드에 아예 연결이 안 되는 상황(에뮬레이터 IP 오설정 등)에서
+  // 스피너도 없이 버튼만 영원히 로딩 상태로 멈추는 문제가 있었다 - 최소한 에러는 뜨게 제한한다.
+  timeout: 15000,
 });
 
 apiClient.interceptors.request.use((config) => {

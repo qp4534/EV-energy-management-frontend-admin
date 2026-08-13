@@ -5,6 +5,7 @@ import * as authApi from '@/api/auth';
 import { TERM_KEYS } from '@/constants/terms-content';
 import { useSignupTermStore } from '@/store/signup-term-store';
 import { getErrorMessage } from '@/utils/error-message';
+import { formatPhoneNumber } from '@/utils/format-phone';
 
 type BirthDate = { year: number | null; month: number | null; day: number | null };
 
@@ -17,7 +18,8 @@ export function useSignupInfo() {
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [birthDate, setBirthDate] = useState<BirthDate>({ year: null, month: null, day: null });
-  const [phone, setPhone] = useState('');
+  const [phone, setPhoneRaw] = useState('');
+  const setPhone = (value: string) => setPhoneRaw(formatPhoneNumber(value));
   const [submitting, setSubmitting] = useState(false);
   const [sendingCode, setSendingCode] = useState(false);
   const [confirmingCode, setConfirmingCode] = useState(false);

@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandInput } from '@/components/common/brand-input';
@@ -40,6 +40,9 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
+        <KeyboardAvoidingView
+          style={styles.scroll}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
@@ -111,6 +114,7 @@ export default function LoginScreen() {
 
           <View style={styles.bottomSpacer} />
         </ScrollView>
+        </KeyboardAvoidingView>
 
         <View style={styles.footerLinkRow}>
           <Pressable

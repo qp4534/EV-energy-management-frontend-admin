@@ -1,14 +1,29 @@
 import * as authApi from '@/api/auth';
+import { useBottomTabInset } from '@/hooks/use-bottom-tab-inset';
 import { useAuthStore } from '@/store/auth-store';
+import { formatPhoneNumber } from '@/utils/format-phone';
 import { Feather } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Modal, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const bottomInset = useBottomTabInset();
   const { user, updateUser } = useAuthStore();
 
   // 🟡 이름/전화번호 편집 상태 (마운트 시 /api/auth/me로 최신 값을 채운다)
@@ -134,8 +149,11 @@ export default function EditProfileScreen() {
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoider}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: bottomInset }]}
         showsVerticalScrollIndicator={false}
       >
         {/* 🟡 중앙 프로필 이미지 영역 */}
@@ -196,7 +214,7 @@ export default function EditProfileScreen() {
             <TextInput
               style={styles.infoInput}
               value={phone}
-              onChangeText={setPhone}
+              onChangeText={(value) => setPhone(formatPhoneNumber(value))}
               placeholder="휴대폰 번호"
               keyboardType="phone-pad"
               editable={profileLoaded}
@@ -248,6 +266,7 @@ export default function EditProfileScreen() {
         </TouchableOpacity>
 
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* 🛠️ 시안 디자인 완벽 반영 알림 모달 팝업 */}
       <Modal
@@ -352,6 +371,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9F9F6',
+  },
+  keyboardAvoider: {
+    flex: 1,
   },
   header: {
     flexDirection: 'row',

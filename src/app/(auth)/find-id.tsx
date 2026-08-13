@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { BrandInput } from '@/components/common/brand-input';
 import { DateSelectRow } from '@/components/common/date-select-row';
@@ -34,6 +34,7 @@ export default function FindIdScreen() {
         backgroundColor={Brand.background}
       />
 
+      <KeyboardAvoidingView style={styles.keyboardAvoider} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {result ? (
           <ResultPanel
@@ -93,6 +94,7 @@ export default function FindIdScreen() {
           </Pressable>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -101,6 +103,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Brand.background,
+  },
+  keyboardAvoider: {
+    flex: 1,
   },
   content: {
     flexGrow: 1,

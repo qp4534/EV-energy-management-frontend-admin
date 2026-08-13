@@ -79,6 +79,23 @@ export default function MapScreen() {
     getCurrentDemandLevel().then(setDemand);
   }, []);
 
+  // 특정 좌표로 지도를 이동시킨다. animateToRegion은 지도 전체 높이 기준으로 좌표를
+  // 정중앙에 놓기 때문에, 화면 하단의 충전소 바텀시트에 가려 보이는 문제가 있었다.
+  // fitToCoordinates는 상하좌우 여백(edgePadding)을 지정해서 그 여백을 뺀 "실제 보이는
+  // 영역" 안에서 중앙에 맞춰주므로, 바텀시트/검색바가 가리는 만큼 여백을 잡아 넘긴다.
+  const focusOnCoordinate = (latitude: number, longitude: number) => {
+    if (!mapRef.current || Platform.OS === 'web') return;
+    mapRef.current.fitToCoordinates([{ latitude, longitude }], {
+      edgePadding: { top: 140, right: 80, bottom: 360, left: 80 },
+      animated: true,
+    });
+  };
+
+  // 리스트에서 충전소를 탭하면 그 충전소 위치로 지도를 이동시킨다.
+  const handleSelectStation = (station: Charger) => {
+    focusOnCoordinate(station.latitude, station.longitude);
+  };
+
   // 검색 버튼 클릭 시 충전소 검색 및 지도 이동 함수
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
@@ -99,15 +116,10 @@ export default function MapScreen() {
 
       if (filtered.length === 0) {
         Alert.alert('검색 결과', '해당하는 충전소가 없습니다.');
-      } else if (mapRef.current && Platform.OS !== 'web') {
+      } else {
         // 검색 결과 중 첫 번째 충전소 위치로 지도 이동
         const firstStation = filtered[0];
-        mapRef.current.animateToRegion({
-          latitude: firstStation.latitude,
-          longitude: firstStation.longitude,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        }, 1000);
+        focusOnCoordinate(firstStation.latitude, firstStation.longitude);
       }
     } catch (error) {
       Alert.alert('오류', '검색 결과를 가져오지 못했습니다.');
@@ -148,7 +160,7 @@ export default function MapScreen() {
           <DemandBadge demand={demand} />
         </View>
 
-        <StationBottomSheet stations={stations} isLoading={isLoading} demand={demand} />
+        <StationBottomSheet stations={stations} isLoading={isLoading} onSelectStation={handleSelectStation} />
       </View>
     </View>
   );

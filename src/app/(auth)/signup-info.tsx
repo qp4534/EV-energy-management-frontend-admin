@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandInput } from '@/components/common/brand-input';
@@ -49,6 +49,9 @@ export default function SignupInfoScreen() {
           </Pressable>
         </View>
 
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoider}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled">
@@ -132,6 +135,7 @@ export default function SignupInfoScreen() {
             </Pressable>
           </View>
         </ScrollView>
+        </KeyboardAvoidingView>
 
         <Text style={styles.footer}>@EV energy resource management platform</Text>
       </SafeAreaView>
@@ -145,6 +149,9 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.background,
   },
   safeArea: {
+    flex: 1,
+  },
+  keyboardAvoider: {
     flex: 1,
   },
   topBar: {

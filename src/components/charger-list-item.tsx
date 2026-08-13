@@ -1,12 +1,13 @@
 import { ThemedText } from '@/components/themed-text';
 import { DemandLevel } from '@/api/demand';
 import { Charger } from '@/types/charger';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 
 type ChargerListItemProps = {
   charger: Charger;
   isLast?: boolean; // 하단 테두리 분기용 추가
-  demand?: DemandLevel | null; // 지금 시간대 전반적인 충전 수요 (충전소별 대기와 합쳐서 혼잡도 계산용)
+demand?: DemandLevel | null; // 지금 시간대 전반적인 충전 수요 (충전소별 대기와 합쳐서 혼잡도 계산용)
+  onPress?: () => void;
 };
 
 type CongestionLevel = '여유' | '보통' | '혼잡';
@@ -32,7 +33,7 @@ function getCongestionLevel(
   return demandLevel === '높음' ? '보통' : '여유';
 }
 
-export function ChargerListItem({ charger, isLast, demand }: ChargerListItemProps) {
+export function ChargerListItem({ charger, isLast, demand, onPress }: ChargerListItemProps) {
   const isAvailable = charger.isAvailable;
   const statusText = isAvailable ? '이용가능' : '이용불가';
   const displayDistance = charger.distanceKm ? `${charger.distanceKm} km` : '0 km';
@@ -41,7 +42,9 @@ export function ChargerListItem({ charger, isLast, demand }: ChargerListItemProp
   const congestion = getCongestionLevel(charger.waitingCount, demand?.level);
 
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
       style={[
         styles.rowContainer,
         {
@@ -98,7 +101,7 @@ export function ChargerListItem({ charger, isLast, demand }: ChargerListItemProp
           </View>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

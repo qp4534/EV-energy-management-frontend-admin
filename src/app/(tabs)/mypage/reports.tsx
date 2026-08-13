@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 
 import { getReports } from '@/api/report';
+import { useBottomTabInset } from '@/hooks/use-bottom-tab-inset';
 import { Report } from '@/types/report';
 import { formatDate } from '@/utils/format-date';
 
 export default function ReportListScreen() {
   const router = useRouter();
+  const bottomInset = useBottomTabInset();
   const [reports, setReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -40,7 +42,9 @@ export default function ReportListScreen() {
           <Text style={{ fontSize: 13, color: '#999999' }}>아직 발행된 보고서가 없습니다.</Text>
         </View>
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 20, gap: 12 }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 20, paddingBottom: bottomInset, gap: 12 }}>
           {reports.map((item) => (
             <TouchableOpacity
               key={item.id}

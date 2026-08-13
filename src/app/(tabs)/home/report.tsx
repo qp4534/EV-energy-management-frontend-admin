@@ -5,6 +5,7 @@ import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from 'rea
 
 import { getBatteryPassport } from '@/api/battery';
 import { getReport, getReports } from '@/api/report';
+import { useBottomTabInset } from '@/hooks/use-bottom-tab-inset';
 import { useVehicleStore } from '@/store/vehicle-store';
 
 import { Report } from '@/types/report';
@@ -12,6 +13,7 @@ import { Report } from '@/types/report';
 export default function ReportScreen() {
   const router = useRouter();
   const { vehicle } = useVehicleStore();
+  const bottomInset = useBottomTabInset();
   // 보고서 목록(마이페이지)에서 특정 보고서를 지정해서 들어온 경우엔 그 보고서를,
   // 없으면(홈 화면 팝업 "자세히 보기") 기존처럼 최신 보고서를 보여준다.
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -69,9 +71,9 @@ export default function ReportScreen() {
         <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#113B29' }}>보고서 상세보기</Text>
       </View>
 
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
-        contentContainerStyle={{ paddingBottom: 40 }}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: bottomInset }}
       >
         {/* 2. 상단 배터리 이상 징후 알림 영역 */}
         <View style={{ alignItems: 'center', marginBottom: 32, marginTop: 8 }}>
