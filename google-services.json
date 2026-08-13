@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "427749412117",
+    "project_id": "mijunge-app",
+    "storage_bucket": "mijunge-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:427749412117:android:09cc8ac62b7b8a8a376d1c",
+        "android_client_info": {
+          "package_name": "com.suyeon12345.frontapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCt4962zMo_qoiiJnoteMOBHrbB4bENvcI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

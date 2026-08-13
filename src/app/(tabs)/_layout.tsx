@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 
 import { useVehicle } from '@/hooks/use-vehicle';
+import { usePushNotifications } from '@/hooks/use-push-notifications';
 // npx expo install @expo/vector-icons 설치
 
 export default function TabsLayout() {
@@ -13,6 +14,9 @@ export default function TabsLayout() {
   useEffect(() => {
     fetchVehicles();
   }, []);
+
+  // 로그인된 상태(이 레이아웃이 마운트된 상태)에서만 푸시 토큰을 등록한다.
+  usePushNotifications();
 
   // 현재 활성화된 화면이 'guide-chat' 인지 확인
   // segments 배열의 마지막 요소가 'guide-chat'인지 체크

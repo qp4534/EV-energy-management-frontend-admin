@@ -15,7 +15,9 @@
 | 통신 | axios (`src/api/client.ts`) |
 | 인증 토큰 저장 | expo-secure-store(네이티브) / localStorage(웹, 개발용) |
 
-**⚠️ 현재 백엔드 서버가 없습니다.** `src/api/*.ts`의 모든 함수는 실제 서버 대신 목업(mock) 데이터를 지연 응답으로 반환합니다. 백엔드가 준비되면 해당 파일 내부만 axios 실호출로 교체하면 되고, 화면/훅 코드는 수정할 필요가 없도록 설계되어 있습니다.
+**백엔드(`EV-energy-management-backend`)와 연동되어 있습니다.** `src/api/client.ts`의 axios 인스턴스가 `EXPO_PUBLIC_API_URL`을 호출하며, 로그인/차량/배터리/알림/공지/리포트/충전소/AI 챗봇까지 전체 기능이 실 서버 기준으로 동작합니다. 상세 API 정의는 [백엔드 API](#백엔드-api) 문단을 참고하세요.
+
+> 참고로 `src/api/*.ts`의 각 함수는 `EXPO_PUBLIC_USE_MOCK` 값에 따라 목업 데이터로도 동작할 수 있게 만들어져 있습니다 (서버 없이 UI만 확인하고 싶을 때 사용).
 
 ## 시작하기
 
@@ -101,6 +103,91 @@ utils/   → 값을 화면에 어떻게 보여줄지 (순수 변환)
 - 로그인 전에는 `(auth)` 그룹만, 로그인 후에는 `(tabs)`와 `notification`만 접근할 수 있도록 루트 `app/_layout.tsx`에서 `Stack.Protected`로 막아뒀습니다.
 - `auth-store`의 `isLoggedIn` 값이 바뀌면(로그아웃 버튼, 혹은 API에서 401 응답을 받아 자동 로그아웃) 화면이 알아서 로그인 쪽으로 이동합니다. 화면 코드에서 수동으로 네비게이션할 필요가 없습니다.
 - 로그인 토큰은 앱을 껐다 켜도 유지됩니다 (네이티브는 SecureStore, 웹은 localStorage).
+
+## 백엔드 API
+
+Base URL: `EXPO_PUBLIC_API_URL` (`.env`)에서 설정. 로그인/회원가입 관련 일부를 제외한 모든 요청에 `Authorization: Bearer <token>` 헤더가 자동으로 붙습니다 (`src/api/client.ts`). 응답 401 시 자동 로그아웃 처리됩니다.
+
+### 인증 / 계정 — `api/auth.ts`
+
+| Method | Path | 역할 |
+|---|---|---|
+| POST | `/api/auth/login` | 로그인, JWT 토큰 발급 |
+| POST | `/api/auth/signup` | 회원가입 |
+| POST | `/api/auth/email/send-code` | 회원가입용 이메일 인증코드 발송 |
+| POST | `/api/auth/email/verify-code` | 이메일 인증코드 검증 |
+| POST | `/api/auth/password/reset/send-code` | 비밀번호 재설정용 인증코드 발송 |
+| POST | `/api/auth/find-email` | 이름/전화번호/생년월일로 아이디(이메일) 찾기 |
+| POST | `/api/auth/password/reset` | 비밀번호 재설정 |
+| GET | `/api/auth/me` | 내 프로필 조회 |
+| PATCH | `/api/auth/me` | 내 프로필 수정 (이름/전화번호/푸시설정/비밀번호 등) |
+| POST | `/api/auth/me/profile-image/upload-url` | 프로필 사진 업로드용 S3 presigned URL 발급 |
+| DELETE | `/api/auth/me` | 회원 탈퇴 |
+| POST | `/api/auth/logout` | 로그아웃 |
+
+### 차량 — `api/vehicle.ts`
+
+| Method | Path | 역할 |
+|---|---|---|
+| GET | `/api/cars` | 내 차량 목록 조회 |
+| GET | `/api/battery-passports` | (차량 목록에 SOH 표시를 위해 함께 조회) |
+| POST | `/api/cars` | 차량 등록 |
+| GET | `/api/cars/{carId}` | 차량 단건 조회 |
+| PUT | `/api/cars/{carId}` | 차량 정보 수정 (닉네임, 대표 차량 여부 등) |
+| DELETE | `/api/cars/{carId}` | 차량 삭제 |
+| POST | `/api/cars/{carId}/image/upload-url` | 차량 사진 업로드용 S3 presigned URL 발급 |
+
+### 배터리 여권 — `api/battery.ts`
+
+| Method | Path | 역할 |
+|---|---|---|
+| GET | `/api/battery-passports` | 차량별 배터리 상태(SOH, 온도, 전압, 전류, 잔존수명) 조회 |
+
+### 디지털 트윈 — `api/twin.ts`
+
+| Method | Path | 역할 |
+|---|---|---|
+| GET | `/api/twin-frames/car/{carId}` | 차량의 최신 상태(온도, 위험도) 조회 — 홈 화면 상태 카드에 사용 |
+
+### 충전소 지도 — `api/charger.ts`
+
+| Method | Path | 역할 |
+|---|---|---|
+| GET | `/api/charging-stations` | 전체 충전소 목록(위치, 충전기 대수, 이용 가능 대수, 대기시간) 조회 — 홈/지도 화면에 사용 |
+
+### 충전 수요 예측 — `api/demand.ts`
+
+| Method | Path | 역할 |
+|---|---|---|
+| GET | `/api/charging-demand/current` | 시간/요일/월 기준 현재 충전 혼잡도(여유/보통/혼잡) 조회 — 홈 화면 배지에 사용 |
+
+### 알림 — `api/notification.ts`
+
+| Method | Path | 역할 |
+|---|---|---|
+| GET | `/api/notifications` | 내 알림 목록 조회 |
+| GET | `/api/notifications/{id}` | 알림 상세 조회 |
+| PATCH | `/api/notifications/{id}/read` | 알림 읽음 처리 |
+
+### 공지사항 — `api/notice.ts`
+
+| Method | Path | 역할 |
+|---|---|---|
+| GET | `/api/notices` | 공지사항 목록 조회 |
+| GET | `/api/notices/{id}` | 공지사항 상세 조회 |
+
+### AI 리포트 — `api/report.ts`
+
+| Method | Path | 역할 |
+|---|---|---|
+| GET | `/api/ai-reports` | 내 차량 기준 AI 분석 리포트 목록 조회 |
+| GET | `/api/ai-reports/{id}` | 리포트 상세 조회 |
+
+### AI 충전 가이드 챗봇 — `api/chat.ts`
+
+| Method | Path | 역할 |
+|---|---|---|
+| POST | `/api/v1/chat/messages` | 챗봇 메시지 전송 및 답변 수신 (충전 가이드 대화) |
 
 ## 파트 나눠서 작업할 때 참고
 
