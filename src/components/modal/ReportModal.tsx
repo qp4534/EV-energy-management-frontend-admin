@@ -1,5 +1,6 @@
 import { NotiType } from '@/types/notification';
 import { Report } from '@/types/report';
+import { formatDateTime } from '@/utils/format-date';
 import { Feather } from '@expo/vector-icons';
 import { Modal, Text, TouchableOpacity, View } from 'react-native';
 
@@ -24,7 +25,7 @@ export function ReportModal({
   // 보고서 데이터가 없으면 기본 메시지로 대체
   const reportTitle = reportData?.title || "보고서 제목 없음";
   const summaryText = reportData?.summary || "보고서 요약 내용이 없습니다.";
-  const createdAt = reportData?.createdAt || "날짜 정보 없음";
+  const createdAt = reportData?.createdAt ? formatDateTime(reportData.createdAt) : "날짜 정보 없음";
   const statusType = reportData?.type || "경고";
 
   return (
