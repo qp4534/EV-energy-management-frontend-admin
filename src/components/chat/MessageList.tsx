@@ -1,4 +1,5 @@
 import { ActivityIndicator, Linking, Platform, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import Markdown from 'react-native-markdown-display';
 
 import { ChatSource } from '@/types/chat';
 
@@ -47,9 +48,31 @@ export default function MessageList({ messages, isSending = false }: MessageList
               })
             }}
           >
-            <Text style={{ fontSize: 14, color: m.isError ? '#B3261E' : '#1F2937', fontWeight: '500', lineHeight: 20 }}>
-              {m.text}
-            </Text>
+            {/* AI 답변은 굵게 표시, 제목, 목록 같은 마크다운 문법으로 오기 때문에(FastApiChatClient
+                응답 원문 그대로) 마크다운 파서를 거쳐 렌더링한다. 사용자 메시지, 에러 메시지는
+                마크다운을 쓸 이유가 없으니 그대로 일반 텍스트로 둔다. */}
+            {m.sender === 'ai' && !m.isError ? (
+              <Markdown
+                style={{
+                  body: { fontSize: 14, color: '#1F2937', fontWeight: '500', lineHeight: 20 },
+                  heading1: { fontSize: 17, fontWeight: '700', marginTop: 8, marginBottom: 4 },
+                  heading2: { fontSize: 16, fontWeight: '700', marginTop: 8, marginBottom: 4 },
+                  heading3: { fontSize: 15, fontWeight: '700', marginTop: 8, marginBottom: 4 },
+                  strong: { fontWeight: '700' },
+                  bullet_list: { marginVertical: 4 },
+                  ordered_list: { marginVertical: 4 },
+                  list_item: { marginVertical: 2 },
+                  hr: { backgroundColor: '#B8D9B8', height: 1, marginVertical: 8 },
+                  code_inline: { fontFamily: 'monospace', fontSize: 13 },
+                }}
+              >
+                {m.text}
+              </Markdown>
+            ) : (
+              <Text style={{ fontSize: 14, color: m.isError ? '#B3261E' : '#1F2937', fontWeight: '500', lineHeight: 20 }}>
+                {m.text}
+              </Text>
+            )}
 
             {/* AI 답변의 근거가 된 자료 목록 (RAG 출처) */}
             {m.sources && m.sources.length > 0 && (
