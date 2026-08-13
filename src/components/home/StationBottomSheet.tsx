@@ -1,3 +1,4 @@
+import { DemandLevel } from '@/api/demand';
 import { Charger } from '@/types/charger';
 import { Feather } from '@expo/vector-icons';
 import { useState } from 'react';
@@ -8,10 +9,16 @@ import { ChargerListItem } from '../charger-list-item';
 interface StationBottomSheetProps {
   stations: Charger[];
   isLoading: boolean;
+demand?: DemandLevel | null; // 충전소별 혼잡도 배지 계산에 같이 쓰임 (charger-list-item 참고)
   onSelectStation?: (station: Charger) => void;
 }
 
-export default function StationBottomSheet({ stations, isLoading, onSelectStation }: StationBottomSheetProps) {
+export default function StationBottomSheet({
+  stations,
+  isLoading,
+  demand,
+  onSelectStation,
+}: StationBottomSheetProps) {
   const [isOpen, setIsOpen] = useState<boolean>(true);
 
   return (
@@ -65,6 +72,7 @@ export default function StationBottomSheet({ stations, isLoading, onSelectStatio
                 key={item.id}
                 charger={item}
                 isLast={idx === stations.length - 1}
+                demand={demand}
                 onPress={() => onSelectStation?.(item)}
               />
             ))}
