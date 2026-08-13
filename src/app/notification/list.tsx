@@ -10,6 +10,7 @@ import { ReportModal } from '@/components/modal/ReportModal';
 import { useVehicleStore } from '@/store/vehicle-store';
 import { Notification, NotiType } from '@/types/notification';
 import { Report } from '@/types/report';
+import { formatDateTime } from '@/utils/format-date';
 
 export default function NotificationListScreen() {
   const router = useRouter();
@@ -158,7 +159,7 @@ export default function NotificationListScreen() {
                   <Text style={{ fontSize: 14, fontWeight: item.isRead ? '500' : 'bold', color: '#222222', marginLeft: 8, flex: 1 }}>
                     {item.title}
                   </Text>
-                  <Text style={{ color: '#999999', fontSize: 11 }}>{item.createdAt}</Text>
+                  <Text style={{ color: '#999999', fontSize: 11 }}>{formatDateTime(item.createdAt)}</Text>
                 </View>
                 <Text style={{ color: '#666666', fontSize: 13, lineHeight: 18, marginLeft: 26 }}>
                   {item.body}

@@ -7,6 +7,7 @@ import { getBatteryPassport } from '@/api/battery';
 import { getReport, getReports } from '@/api/report';
 import { useBottomTabInset } from '@/hooks/use-bottom-tab-inset';
 import { useVehicleStore } from '@/store/vehicle-store';
+import { formatDateTime } from '@/utils/format-date';
 
 import { Report } from '@/types/report';
 
@@ -54,7 +55,7 @@ export default function ReportScreen() {
   // 데이터 매핑
   const displayTitle = report?.title || '배터리 리포트'; 
   const displaySummary = report?.summary || '진단 내역이 존재하지 않습니다.'; 
-  const formattedDate = report?.createdAt || '0000-00-00';
+  const formattedDate = report?.createdAt ? formatDateTime(report.createdAt) : '0000-00-00';
   
   const currentVehicleModel = vehicle?.model || '등록된 차량 없음';
   const currentBatteryTemp = batteryInfo?.temperatureC ? `${batteryInfo.temperatureC} °C` : '-- °C';
