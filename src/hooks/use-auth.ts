@@ -18,6 +18,10 @@ export function useAuth() {
       const res = await authApi.login(request);
       login(res.token, res.user);
     } catch (error) {
+      if (error instanceof authApi.WrongRoleError) {
+        // 서버 에러 메시지가 아니라 여기서 직접 만든 안내 문구라 그대로 다시 던진다.
+        throw error;
+      }
       const message = getErrorMessage(error, '이메일 또는 비밀번호가 올바르지 않습니다.');
       if (isAxiosError(error) && error.response?.data?.error === 'ACCOUNT_LOCKED') {
         throw new AccountLockedError(message);

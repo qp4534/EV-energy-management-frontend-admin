@@ -1,6 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useState } from 'react';
 import { Platform, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface ChatInputProps {
   onSend: (text: string) => void;
@@ -8,6 +9,11 @@ interface ChatInputProps {
 }
 
 export default function ChatInput({ onSend, disabled = false }: ChatInputProps) {
+  // guide-chat 화면은 자체 입력창이 하단 탭바와 겹치는 걸 막기 위해 _layout.tsx에서
+  // 탭바를 아예 숨긴다(hideTabBar). 그러면서 탭바가 대신 더해주던 안드로이드
+  // 제스처바/내비게이션 바 높이(insets.bottom)도 같이 사라져서, 이 입력창이 직접
+  // 더해줘야 시스템 버튼에 안 가려진다.
+  const insets = useSafeAreaInsets();
   const [input, setInput] = useState<string>('');
 
   const handleSend = () => {
@@ -48,10 +54,10 @@ export default function ChatInput({ onSend, disabled = false }: ChatInputProps) 
         style={{ 
           flexDirection: 'row', 
           alignItems: 'center', 
-          paddingHorizontal: 16, 
-          paddingTop: 8, 
-          paddingBottom: Platform.OS === 'ios' ? 24 : 16, 
-          backgroundColor: '#FAF9F5', 
+          paddingHorizontal: 16,
+          paddingTop: 8,
+          paddingBottom: (Platform.OS === 'ios' ? 24 : 16) + insets.bottom,
+          backgroundColor: '#FAF9F5',
           borderTopWidth: 1, 
           borderColor: '#E5E7EB' 
         }}
