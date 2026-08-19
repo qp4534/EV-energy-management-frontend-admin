@@ -1,15 +1,12 @@
 {
   "expo": {
-    "name": "front-app",
+    "name": "MijungE",
     "slug": "front-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "frontapp",
     "userInterfaceStyle": "automatic",
-    "ios": {
-      "icon": "./assets/expo.icon"
-    },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -33,7 +30,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#F9F9F6",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
