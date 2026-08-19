@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Header } from '@/components/common/header';
@@ -22,7 +22,7 @@ export default function VehicleManageScreen() {
           titleColor={Brand.primaryDark}
           backgroundColor={Brand.background}
         />
-        <View style={styles.content}>
+        <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer} showsVerticalScrollIndicator={false}>
           {isRegistered && vehicle ? (
             <VehicleManagePanel
               vehicle={vehicle}
@@ -41,7 +41,7 @@ export default function VehicleManageScreen() {
               </Pressable>
             </View>
           )}
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -57,6 +57,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  contentContainer: {
     padding: 24,
   },
   emptyState: {
