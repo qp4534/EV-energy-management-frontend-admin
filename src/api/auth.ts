@@ -13,6 +13,11 @@ const MOCK_TEST_PASSWORD = '1234';
 // 나머지는 일반 권한으로 처리된다.
 const USER_ROLE = '이용자';
 
+// 백엔드 /api/auth/login은 이용자/관제자/관리자 계정을 구분하지 않고 다 인증해준다
+// (frontend-web도 같은 엔드포인트를 공유해서 씀). 이 앱은 이용자 전용이라, 로그인 자체는
+// 성공해도 role이 '이용자'가 아니면 토큰을 저장하지 않고 여기서 막는다.
+export class WrongRoleError extends Error {}
+
 type BackendMeResponse = {
   userId: string;
   email: string;
@@ -55,6 +60,9 @@ type BackendLoginResponse = {
 export async function login(request: LoginRequest): Promise<LoginResponse> {
   if (!USE_MOCK) {
     const { data } = await apiClient.post<BackendLoginResponse>('/api/auth/login', request);
+    if (data.role !== USER_ROLE) {
+      throw new WrongRoleError('이 앱은 이용자(차주) 전용입니다. 관제자/관리자 계정으로는 로그인할 수 없어요.');
+    }
     // 백엔드 응답에는 email이 없어서, 사용자가 입력한 값을 그대로 사용한다.
     return { token: data.token, user: { id: data.userId, name: data.name, email: request.email } };
   }
