@@ -1,6 +1,12 @@
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Brand } from '@/constants/theme';
+
+// 재전송 대기시간. 백엔드 EmailVerificationService.RESEND_COOLDOWN과 값을 맞춰둔다 -
+// 여기서 보여주는 카운트다운이 실제로 서버가 재요청을 막는 시간과 다르면, 카운트가 끝났는데도
+// 서버가 "잠시 후 다시 시도해주세요"로 튕겨내는 혼란스러운 상황이 생긴다.
+const RESEND_COOLDOWN_SECONDS = 120;
 
 type VerifyFieldProps = {
   email: string;
@@ -31,9 +37,35 @@ export function VerifyField({
   requestError,
   confirmError,
 }: VerifyFieldProps) {
+  const [cooldown, setCooldown] = useState(0);
+  const wasSending = useRef(sending);
+
+  // 메일 발송 요청이 (에러 없이) 끝나는 순간을 잡아서 카운트다운을 시작한다.
+  useEffect(() => {
+    if (wasSending.current && !sending && !requestError) {
+      setCooldown(RESEND_COOLDOWN_SECONDS);
+    }
+    wasSending.current = sending;
+  }, [sending, requestError]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
+
+  const requestDisabled = confirmed || sending || cooldown > 0;
+  const requestLabel = confirmed
+    ? '인증완료'
+    : cooldown > 0
+      ? `재전송 (${cooldown}s)`
+      : requested
+        ? '재전송'
+        : '이메일 인증';
+
   return (
     <View style={styles.container}>
-      <View style={styles.row}>
+      <View style={styles.field}>
         <TextInput
           style={styles.input}
           value={email}
@@ -44,18 +76,29 @@ export function VerifyField({
           autoCapitalize="none"
           editable={!confirmed}
         />
-        <Pressable onPress={onRequestCode} style={styles.pillButton} disabled={confirmed || sending}>
+        <Pressable
+          onPress={onRequestCode}
+          style={[styles.actionButton, requestDisabled && styles.actionButtonDisabled]}
+          disabled={requestDisabled}>
           {sending ? (
             <ActivityIndicator size="small" color={Brand.primaryDark} />
           ) : (
-            <Text style={styles.pillButtonText}>{requested ? '재요청' : '인증 요청'}</Text>
+            <Text style={styles.actionButtonText} numberOfLines={1}>
+              {requestLabel}
+            </Text>
           )}
         </Pressable>
       </View>
       {requestError && <Text style={styles.errorText}>{requestError}</Text>}
 
+      {requested && !confirmed && (
+        <Text style={styles.hintText}>
+          메일 인증 특성상 인증번호 도착까지 최대 1~2분 정도 걸릴 수 있어요. 조금만 기다려주세요.
+        </Text>
+      )}
+
       {requested && (
-        <View style={styles.row}>
+        <View style={styles.field}>
           <TextInput
             style={styles.input}
             value={code}
@@ -64,11 +107,16 @@ export function VerifyField({
             placeholderTextColor={Brand.textMuted}
             editable={!confirmed}
           />
-          <Pressable onPress={onConfirmCode} style={styles.pillButton} disabled={confirmed || confirming}>
+          <Pressable
+            onPress={onConfirmCode}
+            style={[styles.actionButton, (confirmed || confirming) && styles.actionButtonDisabled]}
+            disabled={confirmed || confirming}>
             {confirming ? (
               <ActivityIndicator size="small" color={Brand.primaryDark} />
             ) : (
-              <Text style={styles.pillButtonText}>{confirmed ? '확인 완료' : '확인'}</Text>
+              <Text style={styles.actionButtonText} numberOfLines={1}>
+                {confirmed ? '확인 완료' : '인증번호 확인'}
+              </Text>
             )}
           </Pressable>
         </View>
@@ -80,15 +128,12 @@ export function VerifyField({
 
 const styles = StyleSheet.create({
   container: {
-    gap: 8,
+    gap: 10,
   },
-  row: {
-    flexDirection: 'row',
+  field: {
     gap: 8,
-    alignItems: 'center',
   },
   input: {
-    flex: 1,
     borderWidth: 1,
     borderColor: Brand.border,
     borderRadius: 8,
@@ -98,16 +143,26 @@ const styles = StyleSheet.create({
     color: Brand.text,
     backgroundColor: Brand.card,
   },
-  pillButton: {
+  actionButton: {
     borderRadius: 999,
     backgroundColor: Brand.primary,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  pillButtonText: {
-    fontSize: 13,
+  actionButtonDisabled: {
+    opacity: 0.5,
+  },
+  actionButtonText: {
+    fontSize: 14,
     fontWeight: '700',
     color: Brand.primaryDark,
+    fontVariant: ['tabular-nums'],
+  },
+  hintText: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: Brand.textMuted,
   },
   errorText: {
     fontSize: 12,
